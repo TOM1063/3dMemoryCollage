@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <!-- <script src="https://www.gstatic.com/firebasejs/5.7.0/firebase.js"></script> -->
+  <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.142.0/build/three.module.js"
+        }
+    }
+ </script>
+ <script src="https://code.createjs.com/1.0.0/tweenjs.min.js"></script>
+ <link rel="stylesheet" href="./styles.css"></style>
+</head>
+<body>
+  <!-- <audio id="song" preload="auto" style="display: none">
+    <source src="sounds/Decision.mp3" type="audio/mpeg">
+  </audio> -->
+  <div id="overlay">
+    <button id="startButton">Play</button>
+  </div>
+  <main>
+    <div class="title">
+      <h1>Building Memories</h1>
+      <h1 id="main_title">TTBYC WAREHOUSE</h1>
+      <div class="answer">
+        <p>私は床です</p>
+      </div>
+    </div>
+    <!-- <div id="dom_wrapper">
+      <div class="covering">
+        <div class="interfaces">
+          <textarea rows="5" cols="80" id="textarea"></textarea>
+          <button id="button_memory" class="button">Memory</button>
+          <form>
+            <input id="select_img"type="file" value="画像選択">
+            <input id="button_upload" class="button" type="submit" value="アップロード">
+          </form>
+        </div>
+      </div>
+    </div> -->
+    <canvas id="myCanvas"></canvas>
+  </main>
+  <script src="./app.js" type="module"></script>
+</body>
+</html>
