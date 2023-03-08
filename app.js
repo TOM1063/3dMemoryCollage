@@ -60,6 +60,13 @@ function init() {
 
     //const mat = generateMediaMat('./shader/imgs/test5.JPG');
 
+
+    const mats = [];
+
+    for (let i = 0; i < 5; i ++) {
+        let mat = generateMediaMat(imageLoader,'./shader/imgs/test' + String(i) + '.JPG');
+        mats.push(mat);
+    }
     //fbxをロード
     const loader = new FBXLoader();
     const objects = [];
@@ -78,7 +85,7 @@ function init() {
                 //wireframe: true,
                 });
                 if(index%2 == 0) {
-                    mat = generateMediaMat(imageLoader,'./shader/imgs/test' + String(index%5) + '.JPG');
+                    mat = mats[index%5];
                 }
                 mat.depthTest = true;
                 //mat.wireframe = true;
