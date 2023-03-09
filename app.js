@@ -25,7 +25,7 @@ function init() {
 	overlay.remove();
 
     video.src = "shader/imgs/test5.mp4";
-    //video.play();
+    video.play();
     video.muted = true;
     const videoTexture = new THREE.VideoTexture(video);
     //set
