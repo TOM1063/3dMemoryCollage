@@ -27,6 +27,7 @@ function init() {
     video.src = "shader/imgs/test5.mp4";
     video.play();
     video.muted = true;
+    // video.setAttribute(display,"none");
     const videoTexture = new THREE.VideoTexture(video);
     //set
     const size = {
