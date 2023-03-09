@@ -7,9 +7,9 @@ import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/cont
 
 
 
+const VIDEONUM = 3;
+
 //DOM定義
-
-
 
 const canvas = document.getElementById('myCanvas');
 const startButton = document.getElementById( 'startButton' );
@@ -17,18 +17,21 @@ startButton.addEventListener( 'click', init );
 
 const imageLoader = new THREE.TextureLoader();
 
-const video = document.getElementById('video');
-
+const videoTextures = []
 
 function init() {
     const overlay = document.getElementById( 'overlay' );
 	overlay.remove();
 
-    video.src = "shader/imgs/test5.mp4";
-    video.play();
-    video.muted = true;
-    // video.setAttribute(display,"none");
-    const videoTexture = new THREE.VideoTexture(video);
+    for(let i = 0; i < VIDEONUM; i ++) {
+        const video = document.getElementById('video' + String(i));
+        video.src = "shader/imgs/testvideo" + String(i) + ".mp4";
+        video.play();
+        video.muted = true;
+        const videoTexture = new THREE.VideoTexture(video);
+        videoTexture.needsUpdate = true;
+        videoTextures.push(videoTexture);
+    }
     //set
     const size = {
         width: window.innerWidth,
@@ -75,10 +78,10 @@ function init() {
 
     const mats = [];
 
-    for (let i = 0; i < 6; i ++) {
+    for (let i = 0; i < 8; i ++) {
         let texture;
-        if(i == 5) {
-            texture = videoTexture;
+        if(i >= 5) {
+            texture = videoTextures[i - 5];
             texture.magFilter = THREE.LinearFilter;
             texture.minFilter = THREE.LinearFilter;
             console.log(texture);
@@ -107,8 +110,8 @@ function init() {
                     depthTest:false,
                 //wireframe: true,
                 });
-                if(index%3 == 0 || index%5 == 0) {
-                    mat = mats[index%6];
+                if(index%5 == 0 || index%4 == 0) {
+                    mat = mats[index%8];
                 }
                 mat.depthTest = true;
                 //mat.wireframe = true;
@@ -135,7 +138,6 @@ function init() {
     function tick() {
         controls.update();
         renderer.render(scene, camera); // レンダリング
-        videoTexture.needsUpdate = true;
     
         requestAnimationFrame(tick);
     }
