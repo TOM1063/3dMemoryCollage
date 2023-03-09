@@ -17,9 +17,17 @@ startButton.addEventListener( 'click', init );
 
 const imageLoader = new THREE.TextureLoader();
 
+const video = document.getElementById('video');
+
+
 function init() {
     const overlay = document.getElementById( 'overlay' );
 	overlay.remove();
+
+    video.src = "shader/imgs/test5.mp4";
+    video.play();
+    video.muted = true;
+    const videoTexture = new THREE.VideoTexture(video);
     //set
     const size = {
         width: window.innerWidth,
@@ -45,6 +53,9 @@ function init() {
     renderer.setSize(size.width, size.height);
     const bg_color  = new THREE.Color(0,0,255);
     renderer.setClearColor(bg_color,1);
+    
+    // const texture = imagLoader.load('./shader/imgs/test0.JPG' );
+    // scene.background = texture;
 
     // create light
     const lightColor = 0xffff00;
@@ -63,8 +74,19 @@ function init() {
 
     const mats = [];
 
-    for (let i = 0; i < 5; i ++) {
-        let mat = generateMediaMat(imageLoader,'./shader/imgs/test' + String(i) + '.JPG');
+    for (let i = 0; i < 6; i ++) {
+        let texture;
+        if(i == 5) {
+            texture = videoTexture;
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearFilter;
+            console.log(texture);
+        }
+        else {
+            let url = './shader/imgs/test' + String(i) + '.JPG'
+            texture = imageLoader.load(url);
+        }
+        let mat = generateMediaMat(texture);
         mats.push(mat);
     }
     //fbxをロード
@@ -84,8 +106,8 @@ function init() {
                     depthTest:false,
                 //wireframe: true,
                 });
-                if(index%2 == 0) {
-                    mat = mats[index%5];
+                if(index%3 == 0 || index%5 == 0) {
+                    mat = mats[index%6];
                 }
                 mat.depthTest = true;
                 //mat.wireframe = true;
@@ -112,6 +134,7 @@ function init() {
     function tick() {
         controls.update();
         renderer.render(scene, camera); // レンダリング
+        videoTexture.needsUpdate = true;
     
         requestAnimationFrame(tick);
     }
@@ -122,12 +145,11 @@ function init() {
 
 
 
-function generateMediaMat(loader, url) {
-    let texture = loader.load(url);
+function generateMediaMat(texture) {
 
     let glsl_mat = new THREE.ShaderMaterial({
         uniforms: {
-            uTex: { value: texture }// テスクチャを uTex として渡す
+            uTex: { type:"t",value: texture }// テスクチャを uTex として渡す
         },
         vertexShader:
             `
@@ -139,6 +161,7 @@ function generateMediaMat(loader, url) {
             `,
         fragmentShader:
             `
+            precision mediump float;
             uniform sampler2D uTex;
             void main() {
                 vec2 screenUVs = vec2(gl_FragCoord.x / 3840.0, gl_FragCoord.y / 2160.0);
