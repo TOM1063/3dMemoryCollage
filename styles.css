@@ -10,7 +10,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background: rgba(0,0,0,0.7);
+	background: rgba(0,0,205);
 }
 
 #overlay button {
@@ -99,19 +99,48 @@ header {
     z-index: 100;
     position:fixed;
     text-align: left;
-    height:60px;
+    height:50px;
+    width:60%;
+    margin-top:60px;
 
 }
 .title h1 {
     padding-top:6px;
-    color: white;
+    color: rgba(255, 255, 255, 0.766);
     margin: 0;
     height:100%;
-    font-size: 1.6rem;
+    font-size: 2rem;
+    font-family: "ヒラギノ角ゴ ProN W3";
+    font-style:italic;
+}
+
+.title h2 {
+    padding-top:0;
+    color: rgba(255, 255, 255, 0.766);
+    margin: 0;
+    height:60%;
+    font-size: 0.7rem;
     font-family: "ヒラギノ角ゴ ProN W3";
     font-style:italic;
 }
 
 #main_title {
+    font-size: 3rem;
+}
+
+
+@media screen and (max-width: 480px){
+.title h1 {
+    padding-top:6px;
+    color: white;
+    margin: 0;
+    height:100%;
     font-size: 2rem;
+    font-family: "ヒラギノ角ゴ ProN W3";
+    font-style:italic;
+}
+
+#main_title {
+    font-size: 4rem;
+}
 }
