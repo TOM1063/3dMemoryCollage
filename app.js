@@ -37,6 +37,8 @@ function init() {
         width: window.innerWidth,
         height: window.innerHeight,
     };
+    console.log("size:");
+    console.log(size);
 
 
     // シーンを作成
@@ -90,7 +92,7 @@ function init() {
             let url = './shader/imgs/test' + String(i) + '.JPG'
             texture = imageLoader.load(url);
         }
-        let mat = generateMediaMat(texture);
+        let mat = generateMediaMat(texture,size);
         mats.push(mat);
     }
     //fbxをロード
@@ -148,11 +150,13 @@ function init() {
 
 
 
-function generateMediaMat(texture) {
+function generateMediaMat(texture,windowSize) {
 
     let glsl_mat = new THREE.ShaderMaterial({
         uniforms: {
-            uTex: { type:"t",value: texture }// テスクチャを uTex として渡す
+            uTex: { type:"t",value: texture },// テスクチャを uTex として渡す
+            uWindowSizeX: {value: windowSize.width},
+            uWindowSizeY: {value: windowSize.height}
         },
         vertexShader:
             `
@@ -166,8 +170,10 @@ function generateMediaMat(texture) {
             `
             precision mediump float;
             uniform sampler2D uTex;
+            uniform float uWindowSizeX;
+            uniform float uWindowSizeY;
             void main() {
-                vec2 screenUVs = vec2(gl_FragCoord.x / 3840.0, gl_FragCoord.y / 2160.0);
+                vec2 screenUVs = vec2(gl_FragCoord.x / (uWindowSizeX*2.0), gl_FragCoord.y/ (uWindowSizeY*2.0));
                 vec3 color = texture2D( uTex,  screenUVs ).rgb;
                 gl_FragColor = vec4(color, 1.0 );
             }
