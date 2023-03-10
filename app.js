@@ -10,51 +10,43 @@ import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/cont
 const VIDEONUM = 3;
 
 //DOM定義
-
+const overlay = document.getElementById( 'overlay' );
 const canvas = document.getElementById('myCanvas');
 const startButton = document.getElementById( 'startButton' );
 startButton.addEventListener( 'click', init );
 
-const imageLoader = new THREE.TextureLoader();
+const size = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+};
 
-const videoTextures = []
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, size.width / size.height);
+const controls = new OrbitControls(camera, canvas);
+const renderer = new THREE.WebGLRenderer({
+    canvas: canvas
+    });
+
+const imageLoader = new THREE.TextureLoader();
+const videoTextures = [];
+
+let boundings = [];
+
+const raycaster = new THREE.Raycaster();
+const point = new THREE.Vector2(0,0);
+
 
 function init() {
-    const overlay = document.getElementById( 'overlay' );
 	overlay.remove();
 
-    for(let i = 0; i < VIDEONUM; i ++) {
-        const video = document.getElementById('video' + String(i));
-        video.src = "shader/imgs/testvideo" + String(i) + ".mp4";
-        video.play();
-        video.muted = true;
-        const videoTexture = new THREE.VideoTexture(video);
-        videoTexture.needsUpdate = true;
-        videoTextures.push(videoTexture);
-    }
-    //set
-    const size = {
-        width: window.innerWidth,
-        height: window.innerHeight,
-    };
-    console.log("size:");
-    console.log(size);
-
-
     // シーンを作成
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, size.width / size.height);
     camera.far = 2000;
     camera.aspect = size.width / size.height;
     camera.position.set(0, 0, +1000);
 
-    const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.target.set(-2, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
-    });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(size.width, size.height);
     const bg_color  = new THREE.Color(0,0,255);
@@ -75,7 +67,15 @@ function init() {
     scene.add(directionalLight);
 
 
-    //const mat = generateMediaMat('./shader/imgs/test5.JPG');
+    for(let i = 0; i < VIDEONUM; i ++) {
+        const video = document.getElementById('video' + String(i));
+        video.src = "shader/imgs/testvideo" + String(i) + ".mp4";
+        video.play();
+        video.muted = true;
+        const videoTexture = new THREE.VideoTexture(video);
+        videoTexture.needsUpdate = true;
+        videoTextures.push(videoTexture);
+    }
 
 
     const mats = [];
@@ -95,6 +95,8 @@ function init() {
         let mat = generateMediaMat(texture,size);
         mats.push(mat);
     }
+
+    
     //fbxをロード
     const loader = new FBXLoader();
     const objects = [];
@@ -114,15 +116,20 @@ function init() {
                 });
                 if(index%5 == 0 || index%4 == 0) {
                     mat = mats[index%8];
+                    
+                    //cfeate boundings
+                    let boundingbox = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+                    boundingbox.setFromObject(child);
+                    boundings.push(boundingbox);
+                    objects.push(child);
+                    
                 }
                 mat.depthTest = true;
-                //mat.wireframe = true;
                 child.name = index;
                 child.castShadow = true;
                 child.receiveShadow = true;
                 child.material = mat;
                 console.log(index);
-                objects.push(child);
             }
             //create local data from fbx children index
             const add_data = {object_index: index, memory_text:"", image_url:""};
@@ -136,8 +143,33 @@ function init() {
     },)
 
     tick();
+    const linkThresh = 10;
+
 
     function tick() {
+
+        //detect hit!!//
+        raycaster.setFromCamera( point, camera );
+        const intersects = raycaster.intersectObjects( objects );
+        if(intersects[0]) {
+            // console.log("rock on!");
+            // console.log(intersects);
+            let dist = intersects[0].distance;
+            // console.log("dist: ",dist);
+            if(dist < linkThresh) {
+                console.log("hit!!!")
+                controls.enableZoom = false;
+
+                let page = document.getElementById("page4");
+                
+                console.log(page);
+                page.setAttribute('style','visibility:visible');
+                //page.setAttribute('style', 'opacity:1');
+                page.classList.add('scroll-in');
+            }
+        }
+
+
         controls.update();
         renderer.render(scene, camera); // レンダリング
     
@@ -151,12 +183,14 @@ function init() {
 
 
 function generateMediaMat(texture,windowSize) {
-
+    console.log(texture);
     let glsl_mat = new THREE.ShaderMaterial({
         uniforms: {
             uTex: { type:"t",value: texture },// テスクチャを uTex として渡す
             uWindowSizeX: {value: windowSize.width},
-            uWindowSizeY: {value: windowSize.height}
+            uWindowSizeY: {value: windowSize.height},
+            uTexSizeX: {value: texture.width},
+            uTexSizeY: {value: texture.height}
         },
         vertexShader:
             `
@@ -172,7 +206,10 @@ function generateMediaMat(texture,windowSize) {
             uniform sampler2D uTex;
             uniform float uWindowSizeX;
             uniform float uWindowSizeY;
+            uniform float uTexSizeX;
+            uniform float uTexSizeY;
             void main() {
+                vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
                 vec2 screenUVs = vec2(gl_FragCoord.x / (uWindowSizeX*2.0), gl_FragCoord.y/ (uWindowSizeY*2.0));
                 vec3 color = texture2D( uTex,  screenUVs ).rgb;
                 gl_FragColor = vec4(color, 1.0 );
