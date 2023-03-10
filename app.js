@@ -35,6 +35,8 @@ let boundings = [];
 const raycaster = new THREE.Raycaster();
 const point = new THREE.Vector2(0,0);
 
+const objects = [];
+
 
 function init() {
 	overlay.remove();
@@ -99,7 +101,6 @@ function init() {
     
     //fbxをロード
     const loader = new FBXLoader();
-    const objects = [];
     loader.load('./warehouse2.fbx', ( object )=> {
         object.scale.set(0.05,0.05,0.05);
         //object.material = new THREE.MeshLambertMaterial({transparent:true,opacity:0.6,});
@@ -143,39 +144,46 @@ function init() {
     },)
 
     tick();
+    
+}
+
+function tick() {
     const linkThresh = 10;
 
+    console.log('tick!');
+    controls.update();
+    renderer.render(scene, camera); // レンダリング
 
-    function tick() {
+    //detect hit!!//
+    raycaster.setFromCamera( point, camera );
+    const intersects = raycaster.intersectObjects( objects );
+    if(intersects[0]) {
+        // console.log("rock on!");
+        // console.log(intersects);
+        let dist = Math.abs(intersects[0].distance);
+        // console.log("dist: ",dist);
+        if(dist < linkThresh) {
+            console.log("hit!!!")
+            controls.enableZoom = false;
 
-        //detect hit!!//
-        raycaster.setFromCamera( point, camera );
-        const intersects = raycaster.intersectObjects( objects );
-        if(intersects[0]) {
-            // console.log("rock on!");
-            // console.log(intersects);
-            let dist = intersects[0].distance;
-            // console.log("dist: ",dist);
-            if(dist < linkThresh) {
-                console.log("hit!!!")
-                controls.enableZoom = false;
+            let page = document.getElementById("page4");
+            
+            console.log(page);
+            page.setAttribute('style','visibility:visible');
+            //page.setAttribute('style', 'opacity:1');
+            page.classList.remove('scroll-out');
+            page.classList.add('scroll-in');
 
-                let page = document.getElementById("page4");
-                
-                console.log(page);
-                page.setAttribute('style','visibility:visible');
-                //page.setAttribute('style', 'opacity:1');
-                page.classList.add('scroll-in');
-            }
+            let hiddenButton = document.getElementById('hiddenButton');
+            hiddenButton.addEventListener( 'click', returnTo3D );
         }
-
-
-        controls.update();
-        renderer.render(scene, camera); // レンダリング
-    
+        else {
+            requestAnimationFrame(tick);
+        }
+    }
+    else {
         requestAnimationFrame(tick);
     }
-    
 }
 
 
@@ -219,4 +227,16 @@ function generateMediaMat(texture,windowSize) {
 
     return glsl_mat;
 
+}
+
+
+function returnTo3D() {
+    console.log("clicked!!");
+    controls.enableZoom = true;
+    let page = document.getElementById("page4");
+    page.setAttribute('style','visibility:hidden');
+    page.classList.remove('scroll-in');
+    page.classList.add('scroll-out');
+    camera.position.set(0, 0, +1000);
+    tick();
 }

@@ -1,7 +1,19 @@
+main {
+    z-index: 0;
+    position:fixed;
+    width:100vw;
+    height:100vh;
+}
+
+
+.title-font {
+    font-family: "ヒラギノ角ゴ ProN W3";
+}
+
 #overlay {
 	position: absolute;
 	font-size: 16px;
-	z-index: 2;
+	z-index: 1;
 	top: 0;
 	left: 0;
 	width: 100%;
@@ -13,7 +25,8 @@
 	background: rgba(0,0,205);
 }
 
-#overlay button {
+.button {
+    font-size: 1rem;
     background: transparent;
     border: 0;
     border: 1px solid rgb(255, 255, 255);
@@ -25,16 +38,6 @@
 }
 
 input {
-    font-size:1rem;
-    border:none;
-    display: block;
-    margin:10px auto;
-    background-color: rgba(255, 255, 255, 0.302);
-    color:white;
-    left: 50%;
-}
-
-.button{
     font-size:1rem;
     border:none;
     display: block;
@@ -59,20 +62,29 @@ input {
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background: rgba(255,255,255);
+	background: rgba(0, 0, 255, 0.346);
     opacity: 1;
+    color:white;
     
+}
+
+.hidden_contents {
+    color:white;
+    width:70%;
 }
 
 .fade-in {
     opacity: 0;
-    transition-duration: 500ms;
+    transition-duration: 3000ms;
     transition-property: opacity;
   }
   
 
 .scroll-in {
-    opacity: 0.8;
+    opacity: 1;
+}
+.scroll-out {
+    opacity: 0;
 }
 
 .dom_wrapper {
@@ -134,6 +146,7 @@ header {
 
 }
 .title h1 {
+    z-index: 100;
     padding-top:6px;
     color: rgba(255, 255, 255, 0.766);
     margin: 0;
@@ -144,6 +157,7 @@ header {
 }
 
 .title h2 {
+    z-index: 100;
     padding-top:0;
     color: rgba(255, 255, 255, 0.766);
     margin: 0;
