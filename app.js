@@ -1,6 +1,6 @@
 
 import { FBXLoader } from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/FBXLoader.js';
-import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
+import * as THREE from 'https://unpkg.com/three@0.130.1/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
 // import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js';
 
@@ -49,7 +49,7 @@ function init() {
 	overlay.remove();
 
     // シーンを作成
-    camera.far = 2000;
+    camera.far = 20000;
     camera.aspect = size.width / size.height;
     camera.position.set(500, 0, 500);
 
@@ -187,6 +187,8 @@ function init() {
         const num_childs = index;
         console.log(num_childs);
         onStart();
+        var exporter = new THREE.OBJExporter();
+        exporter.parse(object);
     },)
     tick();
     
@@ -195,6 +197,20 @@ function init() {
 function tick() {
 
 if (true) {
+    if(fbx_model) {
+        fbx_model.traverse((child)=>{
+            if(child.isMesh) {
+                console.log(child);
+                if(child.focused){
+                    child.position.y += 5;
+                }
+            }
+        });
+    }
+
+
+
+
     const linkThresh = 10;
 
     console.log('tick!');
@@ -213,6 +229,7 @@ if (true) {
         if(dist < linkThresh) {
             console.log("hit!!!")
             controls.enableZoom = false;
+            intersects[0].object.focused = true;
 
             let page = document.getElementById("page4");
             
@@ -296,6 +313,7 @@ function returnTo3D() {
     page.classList.remove('scroll-in');
     page.classList.add('scroll-out');
     camera.position.set(0, 0, +1000);
+    
     tick();
 }
 
