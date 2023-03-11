@@ -41,6 +41,9 @@ const point = new THREE.Vector2(0,0);
 
 const objects = [];
 let fbx_model;
+let focused_object;
+
+let ishit = false;
 
 
 let frame = 0;
@@ -95,6 +98,7 @@ function init() {
         sound.setDistanceModel("liner");
         //songElement.play();
         sound.hasPlaybackControl = true;
+        sound.play();
         sounds.push(sound);
 
 
@@ -150,11 +154,6 @@ function init() {
                     if(mat_ref_index > 4) {
                         let sound = sounds[mat_ref_index - 5];
                         sound.play();
-                        // sound.loop = true;
-                        // sound.isplaying = true;
-                        // sound.loopStart = 0.0;
-                        // sound.loopEnd = 3.0;
-                        console.log(sound);
                         child.add(sound);
                     }
                     
@@ -195,14 +194,15 @@ function init() {
 }
 
 function tick() {
-
-if (true) {
+    frame += 1;
+    console.log('tick!');
     if(fbx_model) {
         fbx_model.traverse((child)=>{
             if(child.isMesh) {
-                console.log(child);
                 if(child.focused){
-                    child.position.y += 5;
+                    child.position.y += 1;
+                    child.position.x += 0.01;
+                    child.position.z += 0.01;
                 }
             }
         });
@@ -213,7 +213,6 @@ if (true) {
 
     const linkThresh = 10;
 
-    console.log('tick!');
     controls.update();
     renderer.render(scene, camera); // レンダリング
     TWEEN.update();
@@ -226,35 +225,31 @@ if (true) {
         // console.log(intersects);
         let dist = Math.abs(intersects[0].distance);
         // console.log("dist: ",dist);
-        if(dist < linkThresh) {
-            console.log("hit!!!")
-            controls.enableZoom = false;
-            intersects[0].object.focused = true;
+        if(dist < linkThresh ) {
+            if(!ishit) {
+                console.log("hit!");
+                ishit = true;
+                controls.enableZoom = false;
+                controls.enablePan = false;
+                controls.enableRotate = false;
+                focused_object = intersects[0].object;
 
-            let page = document.getElementById("page4");
-            
-            console.log(page);
-            page.setAttribute('style','visibility:visible');
-            //page.setAttribute('style', 'opacity:1');
-            page.classList.remove('scroll-out');
-            page.classList.add('scroll-in');
+                let page = document.getElementById("page4");
+        
+                page.setAttribute('style','visibility:visible');
+                //page.setAttribute('style', 'opacity:1');
+                page.classList.remove('scroll-out');
+                page.classList.add('scroll-in');
 
-            let hiddenButton = document.getElementById('hiddenButton');
-            hiddenButton.addEventListener( 'click', returnTo3D );
+                let hiddenButton = document.getElementById('hiddenButton');
+                hiddenButton.addEventListener( 'click', returnTo3D );
+            }
         }
         else {
-            requestAnimationFrame(tick);
+            ishit = false;
         }
     }
-    else {
-        requestAnimationFrame(tick);
-    }
-}
-else {
     requestAnimationFrame(tick);
-}
-
-frame += 1;
 }
 
 
@@ -306,13 +301,16 @@ function generateMediaMat(texture,windowSize) {
 
 
 function returnTo3D() {
-    console.log("clicked!!");
+    console.log("returned");
     controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.enableRotate = true;
     let page = document.getElementById("page4");
     page.setAttribute('style','visibility:hidden');
     page.classList.remove('scroll-in');
     page.classList.add('scroll-out');
-    camera.position.set(0, 0, +1000);
+    // camera.position.set(0, 0, +1000);
+    focused_object.focused = true;
     
     tick();
 }
@@ -334,7 +332,7 @@ function onStart() {
         if(child.isMesh){
             console.log("update_pos");
             new TWEEN.Tween(child.position)
-            .to({x: 0, y: 0, z: 0},6000)
+            .to({x: 2000, y: 0, z: 2000},6000)
             .easing(TWEEN.Easing.Elastic.In)
             .start();
         }

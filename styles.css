@@ -37,6 +37,10 @@ main {
     padding: 12px 18px;
     text-transform: uppercase;
     cursor: pointer;
+
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
 }
 
 input {
@@ -64,7 +68,7 @@ input {
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background: rgba(0, 0, 255, 0.346);
+	background: rgba(0, 0, 0, 0.346);
     opacity: 1;
     color:white;
     
