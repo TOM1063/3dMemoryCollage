@@ -7,7 +7,9 @@ main {
 
 
 .title-font {
-    font-family: "ヒラギノ角ゴ ProN W3";
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
 }
 
 #overlay {
@@ -152,8 +154,9 @@ header {
     margin: 0;
     height:100%;
     font-size: 2rem;
-    font-family: "ヒラギノ角ゴ ProN W3";
-    font-style:italic;
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
 }
 
 .title h2 {
@@ -163,8 +166,9 @@ header {
     margin: 0;
     height:60%;
     font-size: 0.7rem;
-    font-family: "ヒラギノ角ゴ ProN W3";
-    font-style:italic;
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
 }
 
 #main_title {

@@ -2,7 +2,7 @@
 import { FBXLoader } from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/FBXLoader.js';
 import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
-//import { Tween } from 'https://unpkg.com/@tweenjs/tween.js@18.6.4/dist/tween.cjs.js';
+// import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js';
 
 
 
@@ -36,6 +36,7 @@ const raycaster = new THREE.Raycaster();
 const point = new THREE.Vector2(0,0);
 
 const objects = [];
+let fbx_model;
 
 
 function init() {
@@ -130,7 +131,6 @@ function init() {
                 child.castShadow = true;
                 child.receiveShadow = true;
                 child.material = mat;
-                console.log(index);
             }
             //create local data from fbx children index
             const add_data = {object_index: index, memory_text:"", image_url:""};
@@ -138,11 +138,20 @@ function init() {
 
             index += 1;
         });
-        scene.add(object);
+        object.traverse((child)=>{
+            if(child.isMesh){
+                console.log(child);
+                child.position.x = Math.random()*20000 - 10000;
+                child.position.y = Math.random()*20000 - 10000;
+                child.position.z = Math.random()*20000 - 10000;
+            }
+        });
+        fbx_model = object;
+        scene.add(fbx_model);
         const num_childs = index;
         console.log(num_childs);
+        onStart();
     },)
-
     tick();
     
 }
@@ -153,6 +162,7 @@ function tick() {
     console.log('tick!');
     controls.update();
     renderer.render(scene, camera); // レンダリング
+    TWEEN.update();
 
     //detect hit!!//
     raycaster.setFromCamera( point, camera );
@@ -239,4 +249,28 @@ function returnTo3D() {
     page.classList.add('scroll-out');
     camera.position.set(0, 0, +1000);
     tick();
+}
+
+
+function onStart() {
+    console.log("onstart");
+    //TWEEN.removeAll();
+    // for (child in fbx_model) {
+    //     if(child.isMesh) {
+    //         console.log("update_pos");
+    //         new TWEEN.Tween(child.position)
+    //         .to({x: 0, y: 0, z: 0},1000)
+    //         .easing(TWEEN.Easing.Exponential.InOut)
+    //         .start();
+    //     }
+    // }
+    fbx_model.traverse((child)=>{
+        if(child.isMesh){
+            console.log("update_pos");
+            new TWEEN.Tween(child.position)
+            .to({x: 0, y: 0, z: 0},4000)
+            .easing(TWEEN.Easing.Exponential.InOut)
+            .start();
+        }
+    });
 }
