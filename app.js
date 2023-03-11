@@ -232,6 +232,7 @@ function tick() {
                 controls.enableZoom = false;
                 controls.enablePan = false;
                 controls.enableRotate = false;
+                controls.enableDamping = false;
                 focused_object = intersects[0].object;
 
                 let page = document.getElementById("page4");
@@ -305,6 +306,7 @@ function returnTo3D() {
     controls.enableZoom = true;
     controls.enablePan = true;
     controls.enableRotate = true;
+    controls.enableDamping = true;
     let page = document.getElementById("page4");
     page.setAttribute('style','visibility:hidden');
     page.classList.remove('scroll-in');
