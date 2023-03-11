@@ -24,7 +24,7 @@ main {
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background: rgba(0,0,205);
+	background: rgba(205,205,205);
 }
 
 .button {
@@ -150,7 +150,7 @@ header {
 .title h1 {
     z-index: 100;
     padding-top:6px;
-    color: rgba(255, 255, 255, 0.766);
+    color: rgba(0, 0, 255, 0.766);
     margin: 0;
     height:100%;
     font-size: 2rem;
@@ -162,7 +162,7 @@ header {
 .title h2 {
     z-index: 100;
     padding-top:0;
-    color: rgba(255, 255, 255, 0.766);
+    color: rgba(255, 255, 255);
     margin: 0;
     height:60%;
     font-size: 0.7rem;

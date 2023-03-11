@@ -27,6 +27,10 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas
     });
 
+const listener = new THREE.AudioListener();
+camera.add( listener );
+const sounds = [];
+
 const imageLoader = new THREE.TextureLoader();
 const videoTextures = [];
 
@@ -39,6 +43,8 @@ const objects = [];
 let fbx_model;
 
 
+let frame = 0;
+
 function init() {
 	overlay.remove();
 
@@ -49,10 +55,12 @@ function init() {
 
     controls.enableDamping = true;
     controls.target.set(-2, 0, 0);
+    controls.zoomSpeed = 0.5;
+    controls.panSpeed = 0.5;
 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(size.width, size.height);
-    const bg_color  = new THREE.Color(0,0,1);
+    const bg_color  = new THREE.Color(0.9,0.9,0.9);
     renderer.setClearColor(bg_color,1);
     
     // const texture = imagLoader.load('./shader/imgs/test0.JPG' );
@@ -73,11 +81,23 @@ function init() {
     for(let i = 0; i < VIDEONUM; i ++) {
         const video = document.getElementById('video' + String(i));
         video.src = "shader/imgs/testvideo" + String(i) + ".mp4";
-        video.play();
         video.muted = true;
+        video.play();
         const videoTexture = new THREE.VideoTexture(video);
         videoTexture.needsUpdate = true;
         videoTextures.push(videoTexture);
+
+        const sound = new THREE.PositionalAudio( listener );
+        video.muted = false;
+        sound.setMediaElementSource( video );
+        sound.setRefDistance( 20 );
+        sound.setVolume(1.5);
+        sound.setDistanceModel("liner");
+        //songElement.play();
+        sound.hasPlaybackControl = true;
+        sounds.push(sound);
+
+
     }
 
 
@@ -116,14 +136,27 @@ function init() {
                     depthTest:false,
                 //wireframe: true,
                 });
-                if(index%7 == 0 || index%2 == 0) {
-                    mat = mats[(index + 1)%8];
+                if(index%6 == 0 || index%2 == 0) {
+                    let mat_ref_index = (index + 1)%8;
+                    mat = mats[mat_ref_index];
                     
                     //cfeate boundings
                     let boundingbox = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
                     boundingbox.setFromObject(child);
                     boundings.push(boundingbox);
                     objects.push(child);
+
+
+                    if(mat_ref_index > 4) {
+                        let sound = sounds[mat_ref_index - 5];
+                        sound.play();
+                        // sound.loop = true;
+                        // sound.isplaying = true;
+                        // sound.loopStart = 0.0;
+                        // sound.loopEnd = 3.0;
+                        console.log(sound);
+                        child.add(sound);
+                    }
                     
                 }
                 mat.depthTest = true;
@@ -140,10 +173,13 @@ function init() {
         });
         object.traverse((child)=>{
             if(child.isMesh){
-                console.log(child);
+                //console.log(child);
                 child.position.x = Math.random()*30000 - 15000;
                 child.position.y = Math.random()*30000 - 15000;
                 child.position.z = Math.random()*30000 - 15000;
+                var helper = new THREE.EdgesHelper(child, 0x0000ff );
+                helper.material.linewidth = 2;
+                child.add( helper );
             }
         });
         fbx_model = object;
@@ -157,6 +193,8 @@ function init() {
 }
 
 function tick() {
+
+if (true) {
     const linkThresh = 10;
 
     console.log('tick!');
@@ -195,6 +233,12 @@ function tick() {
         requestAnimationFrame(tick);
     }
 }
+else {
+    requestAnimationFrame(tick);
+}
+
+frame += 1;
+}
 
 
 
@@ -203,6 +247,7 @@ function tick() {
 function generateMediaMat(texture,windowSize) {
     console.log(texture);
     let glsl_mat = new THREE.ShaderMaterial({
+        transparent:true,
         uniforms: {
             uTex: { type:"t",value: texture },// テスクチャを uTex として渡す
             uWindowSizeX: {value: windowSize.width},
@@ -228,9 +273,12 @@ function generateMediaMat(texture,windowSize) {
             uniform float uTexSizeY;
             void main() {
                 vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
-                vec2 screenUVs = vec2(gl_FragCoord.x / (uWindowSizeX*2.0), gl_FragCoord.y/ (uWindowSizeY*2.0));
+                vec2 screenUVs = vec2(gl_FragCoord.x / uWindowSizeX*0.5, gl_FragCoord.y/ (uWindowSizeY*2.0));
+                if(uWindowSizeX > uWindowSizeY) {
+                    screenUVs = vec2(gl_FragCoord.x / (uWindowSizeX*2.0), (gl_FragCoord.y)/ (uWindowSizeX*1.3));
+                }
                 vec3 color = texture2D( uTex,  screenUVs ).rgb;
-                gl_FragColor = vec4(color, 1.0 );
+                gl_FragColor = vec4(color, 0.85 );
             }
             `
     });
@@ -274,3 +322,18 @@ function onStart() {
         }
     });
 }
+
+
+window.addEventListener("resize", () => {
+    (size.width = window.innerWidth), (size.height = window.innerHeight);
+    camera.aspect = size.width / size.height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(size.width, size.height);
+
+    fbx_model.traverse((child)=>{
+        if(child.isMesh){
+            child.material.uWindowSizeX = size.width;
+            child.material.uWindowSizeY = size.height;
+        }
+    });
+});
