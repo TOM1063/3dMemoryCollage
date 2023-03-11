@@ -177,9 +177,9 @@ function init() {
                 child.position.x = Math.random()*30000 - 15000;
                 child.position.y = Math.random()*30000 - 15000;
                 child.position.z = Math.random()*30000 - 15000;
-                var helper = new THREE.EdgesHelper(child, 0x0000ff );
-                helper.material.linewidth = 2;
-                child.add( helper );
+                // var helper = new THREE.EdgesHelper(child, 0xffffff );
+                // helper.material.linewidth = 2;
+                // child.add( helper );
             }
         });
         fbx_model = object;
