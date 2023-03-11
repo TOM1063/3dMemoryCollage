@@ -45,14 +45,14 @@ function init() {
     // シーンを作成
     camera.far = 2000;
     camera.aspect = size.width / size.height;
-    camera.position.set(0, 0, +1000);
+    camera.position.set(500, 0, 500);
 
     controls.enableDamping = true;
     controls.target.set(-2, 0, 0);
 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(size.width, size.height);
-    const bg_color  = new THREE.Color(0,0,255);
+    const bg_color  = new THREE.Color(0,0,1);
     renderer.setClearColor(bg_color,1);
     
     // const texture = imagLoader.load('./shader/imgs/test0.JPG' );
@@ -112,12 +112,12 @@ function init() {
                     color : child.material.emissive,
                     emissive : child.material.color,
                     transparent: true,
-                    opacity: 0.6,
+                    opacity: 0.7,
                     depthTest:false,
                 //wireframe: true,
                 });
-                if(index%5 == 0 || index%4 == 0) {
-                    mat = mats[index%8];
+                if(index%7 == 0 || index%2 == 0) {
+                    mat = mats[(index + 1)%8];
                     
                     //cfeate boundings
                     let boundingbox = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
@@ -141,9 +141,9 @@ function init() {
         object.traverse((child)=>{
             if(child.isMesh){
                 console.log(child);
-                child.position.x = Math.random()*20000 - 10000;
-                child.position.y = Math.random()*20000 - 10000;
-                child.position.z = Math.random()*20000 - 10000;
+                child.position.x = Math.random()*30000 - 15000;
+                child.position.y = Math.random()*30000 - 15000;
+                child.position.z = Math.random()*30000 - 15000;
             }
         });
         fbx_model = object;
@@ -268,8 +268,8 @@ function onStart() {
         if(child.isMesh){
             console.log("update_pos");
             new TWEEN.Tween(child.position)
-            .to({x: 0, y: 0, z: 0},4000)
-            .easing(TWEEN.Easing.Exponential.InOut)
+            .to({x: 0, y: 0, z: 0},6000)
+            .easing(TWEEN.Easing.Elastic.In)
             .start();
         }
     });
