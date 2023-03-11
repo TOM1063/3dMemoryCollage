@@ -242,6 +242,9 @@ function tick() {
                 page.classList.remove('scroll-out');
                 page.classList.add('scroll-in');
 
+                page.classList.remove('hidden_page_minimize');
+                page.classList.add('hidden_page_extend');
+
                 let hiddenButton = document.getElementById('hiddenButton');
                 hiddenButton.addEventListener( 'click', returnTo3D );
             }
@@ -313,6 +316,13 @@ function returnTo3D() {
     page.classList.add('scroll-out');
     // camera.position.set(0, 0, +1000);
     focused_object.focused = true;
+
+    const targetDOMRect = page.getBoundingClientRect();
+    const targetTop = targetDOMRect.top + window.pageYOffset;
+    window.scrollTo({
+        top: targetTop,
+        behavior: 'smooth'
+    });
     
     tick();
 }
