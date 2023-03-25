@@ -120,6 +120,10 @@ function init() {
         else {
             let url = './shader/imgs/test' + String(i) + '.JPG'
             texture = imageLoader.load(url);
+            if(!texture) {
+                let url = './shader/imgs/test' + String(i) + '.jpg'
+                texture = imageLoader.load(url);
+            }
         }
         let mat = generateMediaMat(texture,size);
         mats.push(mat);
