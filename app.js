@@ -21,7 +21,8 @@ const size = {
 };
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, size.width / size.height);
+const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
+//const camera = new THREE.OrthographicCamera(size.width/-2,size.width/2,size.height/2,size.height/-2,1,10);
 const controls = new OrbitControls(camera, canvas);
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas
@@ -56,14 +57,15 @@ function init() {
     camera.aspect = size.width / size.height;
     camera.position.set(500, 0, 500);
 
-    controls.enableDamping = true;
+    controls.enableDamping = false;
     controls.target.set(-2, 0, 0);
     controls.zoomSpeed = 0.5;
     controls.panSpeed = 0.5;
 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(size.width, size.height);
-    const bg_color  = new THREE.Color(0.9,0.9,0.9);
+    //const bg_color  = new THREE.Color(0.9,0.9,0.9);
+    const bg_color  = new THREE.Color(0.1,0.1,1);
     renderer.setClearColor(bg_color,1);
     
     // const texture = imagLoader.load('./shader/imgs/test0.JPG' );
@@ -107,10 +109,10 @@ function init() {
 
     const mats = [];
 
-    for (let i = 0; i < 8; i ++) {
+    for (let i = 0; i < 13; i ++) {
         let texture;
-        if(i >= 5) {
-            texture = videoTextures[i - 5];
+        if(i >= 11) {
+            texture = videoTextures[i - 11];
             texture.magFilter = THREE.LinearFilter;
             texture.minFilter = THREE.LinearFilter;
             console.log(texture);
@@ -123,6 +125,8 @@ function init() {
         mats.push(mat);
     }
 
+    scene.background = mats[5].texture;
+
     
     //fbxをロード
     const loader = new FBXLoader();
@@ -130,18 +134,60 @@ function init() {
         object.scale.set(0.05,0.05,0.05);
         //object.material = new THREE.MeshLambertMaterial({transparent:true,opacity:0.6,});
         let index = 0;
+
+        //------------------　create group tag -------------------
+        object.traverse((child)=>{
+            if(child.isGroup) {
+                let group_name = child.name;
+                if(child.children) {
+                    let sub_models = child.children;
+                    sub_models.forEach(elem => {
+                        if(elem.isMesh) {
+                            console.log(elem);
+                            elem.groupName = group_name;
+                        }
+                    });
+                }
+            }
+        });
+
+        //------------------- assign material ----------------
         object.traverse((child)=>{
             if(child.isMesh){
                 let mat = new THREE.MeshLambertMaterial( {
                     color : child.material.emissive,
                     emissive : child.material.color,
-                    transparent: true,
-                    opacity: 0.7,
+                    // transparent: true,
+                    // opacity: 0.7,
                     depthTest:false,
                 //wireframe: true,
                 });
-                if(index%6 == 0 || index%2 == 0) {
-                    let mat_ref_index = (index + 1)%8;
+
+                if(child.groupName == "steel") {
+                    if(index%2 == 0) {
+                        mat = mats[5];
+                    }
+                    else {
+                        mat = mats[10];
+                    }
+                }
+
+                if(child.groupName == "concrete") {
+                    mat = mats[6];
+                }
+
+                if(child.groupName == "roof") {
+                    mat = mats[7];
+                }
+                if(child.groupName == "tesuri") {
+                    mat = mats[8];
+                }
+                if(child.groupName == "panel") {
+                    mat = mats[9];
+                }
+
+                if(index%6 == 0 || index%4 == 0) {
+                    let mat_ref_index = 10 + (index)%3;
                     mat = mats[mat_ref_index];
                     
                     //cfeate boundings
@@ -149,27 +195,30 @@ function init() {
                     boundingbox.setFromObject(child);
                     boundings.push(boundingbox);
                     objects.push(child);
-
-
-                    if(mat_ref_index > 4) {
-                        let sound = sounds[mat_ref_index - 5];
+    
+    
+                    if(mat_ref_index > 11) {
+                        let sound = sounds[mat_ref_index - 11];
                         sound.play();
                         child.add(sound);
                     }
                     
                 }
+
                 mat.depthTest = true;
                 child.name = index;
                 child.castShadow = true;
                 child.receiveShadow = true;
                 child.material = mat;
             }
+
             //create local data from fbx children index
             const add_data = {object_index: index, memory_text:"", image_url:""};
             //local_json.push(add_data);
 
             index += 1;
         });
+
         object.traverse((child)=>{
             if(child.isMesh){
                 //console.log(child);
@@ -293,8 +342,8 @@ function generateMediaMat(texture,windowSize) {
                 if(uWindowSizeX > uWindowSizeY) {
                     screenUVs = vec2(gl_FragCoord.x / (uWindowSizeX*2.0), (gl_FragCoord.y)/ (uWindowSizeX*1.3));
                 }
-                vec3 color = texture2D( uTex,  screenUVs ).rgb;
-                gl_FragColor = vec4(color, 0.85 );
+                vec3 color = texture2D( uTex,  vec2(screenUVs.s,screenUVs.t) ).rgb;
+                gl_FragColor = vec4(color, 1.0);
             }
             `
     });

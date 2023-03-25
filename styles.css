@@ -89,6 +89,9 @@ input {
     border: 1px solid rgb(255, 255, 255);
     padding-left:10px;
     padding-right:10px;
+    font-family: "senobi-gothic", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 .hiddenButton {
@@ -182,13 +185,17 @@ header {
 .title h1 {
     z-index: 50;
     padding-top:6px;
-    color: rgba(0, 0, 255, 0.766);
+    /* color: rgba(0, 0, 255, 0.766); */
+    color: rgba(255, 255, 255, 0.766);
     margin: 0;
     height:100%;
     font-size: 2rem;
-    font-family: video, serif;
+    /* font-family: video, serif;
     font-style: normal;
+    font-weight: 400; */
+    font-family: "ta-kaku-shadow", sans-serif;
     font-weight: 400;
+    font-style: normal;
 }
 
 .title h2 {
@@ -204,7 +211,7 @@ header {
 }
 
 #main_title {
-    font-size: 3rem;
+    font-size: 5rem;
 }
 
 
