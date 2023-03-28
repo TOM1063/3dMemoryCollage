@@ -52,6 +52,7 @@ let objects = [];
 let focused_object;
 
 let ishit = false;
+let selected_page;
 
 
 let frame = 0;
@@ -156,6 +157,7 @@ function init() {
                 height: texture.image.height,
             };
             let mat = generateMediaMat(texture,textureSize,size);
+            mat.index = i;
             video_mats[String(i)] = mat;
         }
     }
@@ -285,7 +287,6 @@ function postProcess() {
 
 
 function tick() {
-    console.log("tick");
     frame += 1;
 
     // if(fbx_model) {
@@ -313,7 +314,7 @@ function tick() {
         let dist = Math.abs(intersects[0].distance);
         // console.log("dist: ",dist);
 
-        let colorThresh = 100;
+        let colorThresh = 200;
         focused_object = intersects[0].object;
 
         if(dist < colorThresh) {
@@ -347,15 +348,35 @@ function tick() {
             //     let hiddenButton = document.getElementById('hiddenButton');
             //     hiddenButton.addEventListener( 'click', returnTo3D );
             // }
-            console.log(intersects[0]);
+            if(selected_page) {
+                console.log("oldpage",selected_page);
+                let prev_page = selected_page;
+                console.log("oldpage","page" + String(selected_page));
+                prev_page.setAttribute('style','visibility:hidden');
+                prev_page.classList.remove('scroll-in');
+                prev_page.classList.add('scroll-out');   
+            }
+
+
+
+            let page_name = "page" + String(intersects[0].object.material.index);
+            let page = document.getElementById(page_name);
+        
+            page.setAttribute('style','visibility:visible');
+            //page.setAttribute('style', 'opacity:1');
+            page.classList.remove('scroll-out');
+            page.classList.add('scroll-in');
+
             var newBackground = intersects[0].object.material.uniforms.uTex.value;
             scene.background = newBackground;
-            console.log(newBackground);
             camera.position.set(1000, 1000, 1000);
+            selected_page = page;
+            console.log("newpage", selected_page);
 
         }
         else {
             ishit = false;
+            
         }
     }
     else {

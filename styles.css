@@ -63,12 +63,15 @@ input {
 	top: 0;
 	left: 0;
 	height: 100%;
+    width:100%;
 	display: flex;
 	align-items: center;
 	/* justify-content: center; */
 	flex-direction: column;
     opacity: 1;
-    color:white;
+    color:rgb(0, 0, 0);
+    pointer-events: none;
+    height:100vh;
     
 }
 
@@ -81,12 +84,12 @@ input {
 
 .hidden_contents {
     z-index:100;
-    color:white;
+    color:rgb(0, 0, 0);
     width:70%;
     margin-top:20vw;
-    background: rgba(0, 0, 255,0.7);
+    background: rgba(255,255,255);
     border: 0;
-    border: 1px solid rgb(255, 255, 255);
+    border: 1px solid rgb(0, 0, 0,1);
     padding-left:10px;
     padding-right:10px;
     font-family: "senobi-gothic", sans-serif;
@@ -174,6 +177,7 @@ header {
 }
 
 .title {
+    pointer-events: none;
     z-index: 50;
     position:fixed;
     text-align: left;
