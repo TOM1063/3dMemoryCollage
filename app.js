@@ -6,8 +6,17 @@ import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/cont
 
 
 
+let videoTextures = [];
+let video_mats = {};
+let img_mats = {}
+let fbx_model = [];
 
-const VIDEONUM = 3;
+let dataLoadingPromises = [];
+
+const TEXTURE_NUM = 14;
+const IMAGE_NUM = 11;
+const VIDEO_NUM = TEXTURE_NUM - IMAGE_NUM;
+
 
 //DOM定義
 const overlay = document.getElementById( 'overlay' );
@@ -33,15 +42,13 @@ camera.add( listener );
 const sounds = [];
 
 const imageLoader = new THREE.TextureLoader();
-const videoTextures = [];
 
 let boundings = [];
 
 const raycaster = new THREE.Raycaster();
 const point = new THREE.Vector2(0,0);
 
-const objects = [];
-let fbx_model;
+let objects = [];
 let focused_object;
 
 let ishit = false;
@@ -49,26 +56,34 @@ let ishit = false;
 
 let frame = 0;
 
+console.log("hey");
+
+
+
+
+
 function init() {
-	overlay.remove();
+    console.log("start");
+    overlay.remove();
+
 
     // シーンを作成
     camera.far = 20000;
     camera.aspect = size.width / size.height;
-    camera.position.set(500, 0, 500);
+    camera.position.set(100, 0, 100);
 
-    controls.enableDamping = false;
+    // controls.enableDamping = false;
     controls.target.set(-2, 0, 0);
     controls.zoomSpeed = 0.5;
     controls.panSpeed = 0.5;
 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(size.width, size.height);
-    //const bg_color  = new THREE.Color(0.9,0.9,0.9);
-    const bg_color  = new THREE.Color(0.1,0.1,1);
+    // const bg_color  = new THREE.Color(0.9,0.9,0.9);
+    const bg_color  = new THREE.Color(0.9,0.9,0.9);
     renderer.setClearColor(bg_color,1);
     
-    // const texture = imagLoader.load('./shader/imgs/test0.JPG' );
+    // const texture = imageLoader.load('./shader/imgs/test10.JPG' );
     // scene.background = texture;
 
     // create light
@@ -83,7 +98,9 @@ function init() {
     scene.add(directionalLight);
 
 
-    for(let i = 0; i < VIDEONUM; i ++) {
+
+    // preload video textures
+    for(let i = 0; i < VIDEO_NUM; i ++) {
         const video = document.getElementById('video' + String(i));
         video.src = "shader/imgs/testvideo" + String(i) + ".mp4";
         video.muted = true;
@@ -102,283 +119,257 @@ function init() {
         sound.hasPlaybackControl = true;
         sound.play();
         sounds.push(sound);
-
-
     }
 
-
-    const mats = [];
-
-    for (let i = 0; i < 13; i ++) {
-        let texture;
-        if(i >= 11) {
-            texture = videoTextures[i - 11];
-            texture.magFilter = THREE.LinearFilter;
-            texture.minFilter = THREE.LinearFilter;
-            console.log(texture);
+    //generate loading promises
+    for (let i = 0; i < TEXTURE_NUM; i ++) {
+        console.log("loop");
+        if(i >= VIDEO_NUM) {
+            let url = './shader/imgs/test' + String(i - VIDEO_NUM) + '.JPG';
+            const promise = new Promise((resolve,reject) => {
+                imageLoader.load(url,function(image) {
+                    let texture = image;
+                    texture.needsUpdate = true;
+                    let textureSize = {
+                        width: texture.image.width,
+                        height: texture.image.height,
+                    };
+                    console.log("------------------this is image-------------");
+                    console.log(texture);
+                    console.log(texture.image);
+                    let mat = generateMediaMat(texture,textureSize,size);
+                    img_mats[String(i - VIDEO_NUM)] = mat;
+                    resolve();
+                }, undefined, reject);
+            });
+            dataLoadingPromises.push(promise);
         }
         else {
-            let url = './shader/imgs/test' + String(i) + '.JPG'
-            texture = imageLoader.load(url);
-            if(!texture) {
-                let url = './shader/imgs/test' + String(i) + '.jpg'
-                texture = imageLoader.load(url);
-            }
+            let texture = videoTextures[i];
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearFilter;
+            console.log("------------------this is video-------------");
+            console.log(texture);
+            console.log(texture.image);
+            let textureSize = {
+                width: texture.image.width,
+                height: texture.image.height,
+            };
+            let mat = generateMediaMat(texture,textureSize,size);
+            video_mats[String(i)] = mat;
         }
-        let mat = generateMediaMat(texture,size);
-        mats.push(mat);
     }
 
-    scene.background = mats[5].texture;
-
-    
-    //fbxをロード
-    const loader = new FBXLoader();
-    loader.load('./warehouse2.fbx', ( object )=> {
-        object.scale.set(0.05,0.05,0.05);
-        //object.material = new THREE.MeshLambertMaterial({transparent:true,opacity:0.6,});
-        let index = 0;
-
-        //------------------　create group tag -------------------
-        object.traverse((child)=>{
-            if(child.isGroup) {
-                let group_name = child.name;
-                if(child.children) {
-                    let sub_models = child.children;
-                    sub_models.forEach(elem => {
-                        if(elem.isMesh) {
-                            console.log(elem);
-                            elem.groupName = group_name;
-                        }
-                    });
-                }
-            }
-        });
-
-        //------------------- assign material ----------------
-        object.traverse((child)=>{
-            if(child.isMesh){
-                let mat = new THREE.MeshLambertMaterial( {
-                    color : child.material.emissive,
-                    emissive : child.material.color,
-                    // transparent: true,
-                    // opacity: 0.7,
-                    depthTest:false,
-                //wireframe: true,
-                });
-
-                if(child.groupName == "steel") {
-                    if(index%2 == 0) {
-                        mat = mats[5];
-                    }
-                    else {
-                        mat = mats[10];
+    const fbxLoader = new FBXLoader();
+    const fbx_load_pormise = new Promise((resolve,reject) => {
+        fbxLoader.load('./warehouse2.fbx', ( object )=> {
+            object.scale.set(0.01,0.01,0.01);
+            object.traverse((child)=>{
+                if(child.isGroup) {
+                    let group_name = child.name;
+                    if(child.children) {
+                        let sub_models = child.children;
+                        sub_models.forEach(elem => {
+                            if(elem.isMesh) {
+                                elem.groupName = group_name;
+                            }
+                        });
                     }
                 }
+            });
+            fbx_model = object;
+            resolve();
+        },undefined, reject);
+    });
+    dataLoadingPromises.push(fbx_load_pormise);
 
-                if(child.groupName == "concrete") {
-                    mat = mats[6];
-                }
 
-                if(child.groupName == "roof") {
-                    mat = mats[7];
-                }
-                if(child.groupName == "tesuri") {
-                    mat = mats[8];
-                }
-                if(child.groupName == "panel") {
-                    mat = mats[9];
-                }
+    //promises done
+    Promise.all(dataLoadingPromises).then((results) => {
+        console.log("-------------mats------------")
+        console.log(video_mats);
+        postProcess();
+    });
 
-                if(index%6 == 0 || index%4 == 0) {
-                    let mat_ref_index = 10 + (index)%3;
-                    mat = mats[mat_ref_index];
-                    
-                    //cfeate boundings
-                    let boundingbox = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
-                    boundingbox.setFromObject(child);
-                    boundings.push(boundingbox);
-                    objects.push(child);
-    
-    
-                    if(mat_ref_index > 11) {
-                        let sound = sounds[mat_ref_index - 11];
-                        sound.play();
-                        child.add(sound);
-                    }
-                    
-                }
-
-                mat.depthTest = true;
-                child.name = index;
-                child.castShadow = true;
-                child.receiveShadow = true;
-                child.material = mat;
-            }
-
-            //create local data from fbx children index
-            const add_data = {object_index: index, memory_text:"", image_url:""};
-            //local_json.push(add_data);
-
-            index += 1;
-        });
-
-        object.traverse((child)=>{
-            if(child.isMesh){
-                //console.log(child);
-                child.position.x = Math.random()*30000 - 15000;
-                child.position.y = Math.random()*30000 - 15000;
-                child.position.z = Math.random()*30000 - 15000;
-                // var helper = new THREE.EdgesHelper(child, 0xffffff );
-                // helper.material.linewidth = 2;
-                // child.add( helper );
-            }
-        });
-        fbx_model = object;
-        scene.add(fbx_model);
-        const num_childs = index;
-        console.log(num_childs);
-        onStart();
-        var exporter = new THREE.OBJExporter();
-        exporter.parse(object);
-    },)
-    tick();
-    
 }
 
-function tick() {
-    frame += 1;
-    console.log('tick!');
-    if(fbx_model) {
-        fbx_model.traverse((child)=>{
-            if(child.isMesh) {
-                if(child.focused){
-                    child.position.y += 1;
-                    child.position.x += 0.01;
-                    child.position.z += 0.01;
+
+
+
+
+function postProcess() {
+
+    let index = 0;
+    fbx_model.traverse((child)=>{
+        if(child.isMesh){
+            let mat = new THREE.MeshLambertMaterial( {
+                color : child.material.emissive,
+                emissive : child.material.color,
+                // transparent: true,
+                // opacity: 0.7,
+                depthTest:false,
+            //wireframe: true,
+            });
+
+            if(child.groupName == "steel") {
+                if(index%2 == 0) {
+                    mat = img_mats[String(5)];
+                }
+                else {
+                    mat = img_mats[String(10)];
                 }
             }
-        });
-    }
+            if(child.groupName == "concrete") {
+                mat = img_mats[String(6)];
+            }
+
+            if(child.groupName == "roof") {
+                mat = img_mats[String(7)];
+            }
+            if(child.groupName == "tesuri") {
+                mat = img_mats[String(8)];
+            }
+            if(child.groupName == "panel") {
+                mat = img_mats[String(9)];
+            }
+
+            if(index%6 == 0 || index%4 == 0) {
+                let mat_ref_index = (index)%3;
+                mat = video_mats[mat_ref_index];
+                
+                //cfeate boundings
+                // let boundingbox = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+                // boundingbox.setFromObject(child);
+                // boundings.push(boundingbox);
+                objects.push(child);
+
+
+                if(mat_ref_index > 11) {
+                    let sound = sounds[mat_ref_index - 11];
+                    sound.play();
+                    child.add(sound);
+                }
+                
+            }
+
+            mat.depthTest = true;
+            child.castShadow = true;
+            child.receiveShadow = true;
+            child.material = mat;
+        }
+        //create local data from fbx children index
+        //const add_data = {object_index: index, memory_text:"", image_url:""};
+        //local_json.push(add_data);
+        index += 1;
+    });
+
+    fbx_model.traverse((child)=>{
+        if(child.isMesh){
+            //console.log(child);
+            child.position.x = Math.random()*30000 - 15000;
+            child.position.y = Math.random()*30000 - 15000;
+            child.position.z = Math.random()*30000 - 15000;
+            // var helper = new THREE.EdgesHelper(child, 0xffffff );
+            // helper.material.linewidth = 2;
+            // child.add( helper );
+        }
+    });
+    scene.add(fbx_model);
+    const num_childs = index;
+    console.log(num_childs);
+    onStart();
+
+    tick();
+}
 
 
 
+function tick() {
+    console.log("tick");
+    frame += 1;
+
+    // if(fbx_model) {
+    //     fbx_model.traverse((child)=>{
+    //         if(child.isMesh) {
+    //             if(child.focused){
+    //                 child.position.y += 1;
+    //                 child.position.x += 0.01;
+    //                 child.position.z += 0.01;
+    //             }
+    //         }
+    //     });
+    // }
 
     const linkThresh = 10;
-
     controls.update();
     renderer.render(scene, camera); // レンダリング
     TWEEN.update();
-
     //detect hit!!//
     raycaster.setFromCamera( point, camera );
     const intersects = raycaster.intersectObjects( objects );
     if(intersects[0]) {
-        // console.log("rock on!");
+        console.log("rock on!");
         // console.log(intersects);
         let dist = Math.abs(intersects[0].distance);
         // console.log("dist: ",dist);
+
+        let colorThresh = 100;
+        focused_object = intersects[0].object;
+
+        if(dist < colorThresh) {
+            let colorFactor = dist/colorThresh;
+            console.log(colorFactor);
+            intersects[0].object.material.uniforms.uColorFactor.value = 1.0 - colorFactor;
+        }
+        else {
+            intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
+        }
         if(dist < linkThresh ) {
-            if(!ishit) {
-                console.log("hit!");
-                ishit = true;
-                controls.enableZoom = false;
-                controls.enablePan = false;
-                controls.enableRotate = false;
-                controls.enableDamping = false;
-                focused_object = intersects[0].object;
+            // if(!ishit) {
+            //     console.log("hit!");
+            //     ishit = true;
+            //     controls.enableZoom = false;
+            //     controls.enablePan = false;
+            //     controls.enableRotate = false;
+            //     controls.enableDamping = false;
+            //     focused_object = intersects[0].object;
 
-                let page = document.getElementById("page4");
+            //     let page = document.getElementById("page4");
         
-                page.setAttribute('style','visibility:visible');
-                //page.setAttribute('style', 'opacity:1');
-                page.classList.remove('scroll-out');
-                page.classList.add('scroll-in');
+            //     page.setAttribute('style','visibility:visible');
+            //     //page.setAttribute('style', 'opacity:1');
+            //     page.classList.remove('scroll-out');
+            //     page.classList.add('scroll-in');
 
-                page.classList.remove('hidden_page_minimize');
-                page.classList.add('hidden_page_extend');
+            //     page.classList.remove('hidden_page_minimize');
+            //     page.classList.add('hidden_page_extend');
 
-                let hiddenButton = document.getElementById('hiddenButton');
-                hiddenButton.addEventListener( 'click', returnTo3D );
-            }
+            //     let hiddenButton = document.getElementById('hiddenButton');
+            //     hiddenButton.addEventListener( 'click', returnTo3D );
+            // }
+            console.log(intersects[0]);
+            var newBackground = intersects[0].object.material.uniforms.uTex.value;
+            scene.background = newBackground;
+            console.log(newBackground);
+            camera.position.set(1000, 1000, 1000);
+
         }
         else {
             ishit = false;
         }
+    }
+    else {
+        if(focused_object) {
+            focused_object.material.uniforms.uColorFactor.value = 0.0;
+            focused_object = "";
+        }
+
     }
     requestAnimationFrame(tick);
 }
 
 
 
-
-
-function generateMediaMat(texture,windowSize) {
-    console.log(texture);
-    let glsl_mat = new THREE.ShaderMaterial({
-        transparent:true,
-        uniforms: {
-            uTex: { type:"t",value: texture },// テスクチャを uTex として渡す
-            uWindowSizeX: {value: windowSize.width},
-            uWindowSizeY: {value: windowSize.height},
-            uTexSizeX: {value: texture.width},
-            uTexSizeY: {value: texture.height}
-        },
-        vertexShader:
-            `
-            void main() {
-                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-                vec4 mvPosition =  viewMatrix * worldPosition;
-                gl_Position = projectionMatrix * mvPosition;
-            }
-            `,
-        fragmentShader:
-            `
-            precision mediump float;
-            uniform sampler2D uTex;
-            uniform float uWindowSizeX;
-            uniform float uWindowSizeY;
-            uniform float uTexSizeX;
-            uniform float uTexSizeY;
-            void main() {
-                vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
-                vec2 screenUVs = vec2(gl_FragCoord.x / uWindowSizeX*0.5, gl_FragCoord.y/ (uWindowSizeY*2.0));
-                if(uWindowSizeX > uWindowSizeY) {
-                    screenUVs = vec2(gl_FragCoord.x / (uWindowSizeX*2.0), (gl_FragCoord.y)/ (uWindowSizeX*1.3));
-                }
-                vec3 color = texture2D( uTex,  vec2(screenUVs.s,screenUVs.t) ).rgb;
-                gl_FragColor = vec4(color, 1.0);
-            }
-            `
-    });
-
-    return glsl_mat;
-
-}
-
-
-function returnTo3D() {
-    console.log("returned");
-    controls.enableZoom = true;
-    controls.enablePan = true;
-    controls.enableRotate = true;
-    controls.enableDamping = true;
-    let page = document.getElementById("page4");
-    page.setAttribute('style','visibility:hidden');
-    page.classList.remove('scroll-in');
-    page.classList.add('scroll-out');
-    // camera.position.set(0, 0, +1000);
-    focused_object.focused = true;
-
-    const targetDOMRect = page.getBoundingClientRect();
-    const targetTop = targetDOMRect.top + window.pageYOffset;
-    window.scrollTo({
-        top: targetTop,
-        behavior: 'smooth'
-    });
-    
-    tick();
-}
 
 
 function onStart() {
@@ -404,6 +395,58 @@ function onStart() {
     });
 }
 
+
+
+
+
+
+function generateMediaMat(texture,textureSize, windowSize) {
+    //console.log(texture.image.attributes.width.value);
+    console.log(windowSize);
+    console.log(textureSize);
+    let glsl_mat = new THREE.ShaderMaterial({
+        transparent:true,
+        uniforms: {
+            uTex: { type:"t",value: texture },// テスクチャを uTex として渡す
+            uWindowSizeX: {value: windowSize.width},
+            uWindowSizeY: {value: windowSize.height},
+            uTexSizeX: {value: textureSize.width},
+            uTexSizeY: {value: textureSize.height},
+            uColorFactor: {value:0.0}
+            // uTexSizeX: {value: texture.image.attributes.width.value},
+            // uTexSizeY: {value: texture.image.attributes.height.value}
+        },
+        vertexShader:
+            `
+            void main() {
+                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+                vec4 mvPosition =  viewMatrix * worldPosition;
+                gl_Position = projectionMatrix * mvPosition;
+            }
+            `,
+        fragmentShader:
+            `
+            precision mediump float;
+            uniform sampler2D uTex;
+            uniform float uWindowSizeX;
+            uniform float uWindowSizeY;
+            uniform float uTexSizeX;
+            uniform float uTexSizeY;
+            uniform float uColorFactor;
+            void main() {
+                vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
+                vec2 screenUVs = vec2(gl_FragCoord.x / uWindowSizeX*0.5, gl_FragCoord.y/uWindowSizeY*0.5);
+                vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
+                vec3 color = vec3(texture_color.r*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.g*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.b );
+                gl_FragColor = vec4(color.rgb, 1.0);
+            }
+            `
+    });
+
+    let debug_mat = new THREE.MeshLambertMaterial();
+    return glsl_mat;
+
+}
 
 window.addEventListener("resize", () => {
     (size.width = window.innerWidth), (size.height = window.innerHeight);
