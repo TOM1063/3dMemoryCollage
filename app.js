@@ -30,7 +30,7 @@ const size = {
 };
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
+const camera = new THREE.PerspectiveCamera(100, size.width / size.height);
 //const camera = new THREE.OrthographicCamera(size.width/-2,size.width/2,size.height/2,size.height/-2,1,10);
 const controls = new OrbitControls(camera, canvas);
 const renderer = new THREE.WebGLRenderer({
@@ -321,12 +321,12 @@ function tick() {
 
             let points = [];
             camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
-            points.push(prev_point);
-            points.push(camera_pos);
-            console.log(points);
-            const geometry = new THREE.BufferGeometry().setFromPoints( points );
-            const line = new THREE.Line( geometry, material );
-            scene.add( line );
+            // points.push(prev_point);
+            // points.push(camera_pos);
+            // console.log(points);
+            // const geometry = new THREE.BufferGeometry().setFromPoints( points );
+            // const line = new THREE.Line( geometry, material );
+            // scene.add( line );
 
             prev_point = camera_pos;
         }
