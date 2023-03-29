@@ -36,6 +36,7 @@ const controls = new OrbitControls(camera, canvas);
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas
     });
+const target = new THREE.Vector3(-2,0,0);
 
 const listener = new THREE.AudioListener();
 camera.add( listener );
@@ -74,7 +75,7 @@ function init() {
     camera.position.set(100, 0, 100);
 
     controls.enableDamping = false;
-    controls.target.set(-2, 0, 0);
+    controls.target.set(target.x, target.y, target.z);
     controls.zoomSpeed = 0.5;
     controls.panSpeed = 0.5;
 
@@ -299,37 +300,47 @@ indic_mat.transparent = true;
 indic_mat.blending = THREE.AddEquation;
 indic_mat.opacity = 0.4;
 
+
+const track_thresh = 700;
+
 function tick() {
     frame += 1;
 
-    if((frame % 1 == 0)) {
-        let camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
+    let dist_from_point = Math.sqrt(
+        (camera.position.x - target.x)*(camera.position.x - target.x)
+    + (camera.position.y - target.y)*(camera.position.y - target.y)
+    + (camera.position.z - target.z) * (camera.position.z - target.z));
 
-        if(prev_point  && ishit==false) {
-
-            let vel = camera_pos.sub(prev_point);
-            let vel_mag = Math.sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
-            let box = new THREE.SphereGeometry(vel_mag/5,8,8);
-            let track = new THREE.Mesh( box, track_material );
-            track.position.set(prev_point.x, prev_point.y, prev_point.z);
-            track.name = frame;
-
-            tracks.push(track);
-            scene.add(track);
-
-            let points = [];
-            camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
-            // points.push(prev_point);
-            // points.push(camera_pos);
-            // console.log(points);
-            // const geometry = new THREE.BufferGeometry().setFromPoints( points );
-            // const line = new THREE.Line( geometry, material );
-            // scene.add( line );
-
-            prev_point = camera_pos;
-        }
-        else {
-            prev_point = camera_pos;
+    if(true) {
+        if((frame % 1 == 0)) {
+            let camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
+    
+            if(prev_point  && ishit==false) {
+    
+                let vel = camera_pos.sub(prev_point);
+                let vel_mag = Math.sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
+                let box = new THREE.SphereGeometry(vel_mag/7,8,8);
+                let track = new THREE.Mesh( box, track_material );
+                track.position.set(prev_point.x, prev_point.y, prev_point.z);
+                track.name = frame;
+    
+                tracks.push(track);
+                scene.add(track);
+    
+                let points = [];
+                camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
+                // points.push(prev_point);
+                // points.push(camera_pos);
+                // console.log(points);
+                // const geometry = new THREE.BufferGeometry().setFromPoints( points );
+                // const line = new THREE.Line( geometry, material );
+                // scene.add( line );
+    
+                prev_point = camera_pos;
+            }
+            else {
+                prev_point = camera_pos;
+            }
         }
     }
 
@@ -395,7 +406,9 @@ function tick() {
             //change background texture
             var newBackground = intersects[0].object.material.uniforms.uTex.value;
             scene.background = newBackground;
-            camera.position.set(1000, 1000, 1000);
+            let random_theta = Math.random()*360;
+            console.log(random_theta);
+            camera.position.set(1000*Math.sin(random_theta), 1000, 1000*Math.cos(random_theta));
             selected_page = page;
 
 
