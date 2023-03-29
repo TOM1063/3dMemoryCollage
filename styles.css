@@ -68,7 +68,7 @@ input {
 	align-items: center;
 	/* justify-content: center; */
 	flex-direction: column;
-    opacity: 1;
+    opacity: 0;
     color:rgb(0, 0, 0);
     pointer-events: none;
     height:100vh;
@@ -84,12 +84,12 @@ input {
 
 .hidden_contents {
     z-index:100;
-    color:rgb(0, 0, 0);
+    color:rgb(0, 0, 255);
     width:70%;
     margin-top:20vw;
-    background: rgba(255,255,255);
+    /* background: rgba(2550,255,255,0.2); */
     border: 0;
-    border: 1px solid rgb(0, 0, 0,1);
+    border: 1px solid rgb(0, 0, 255);
     padding-left:10px;
     padding-right:10px;
     font-family: "senobi-gothic", sans-serif;
@@ -114,15 +114,22 @@ input {
 }
 
 .fade-in {
-    opacity: 0;
-    transition-duration: 3000ms;
+    opacity: 1;
+    transition-duration: 2000ms;
     transition-property: opacity;
   }
+
+.fade-out {
+    opacity: 0;
+    transition-duration: 2000ms;
+    transition-property: opacity;
+}
   
 
 .scroll-in {
     opacity: 1;
 }
+
 .scroll-out {
     opacity: 0;
 }

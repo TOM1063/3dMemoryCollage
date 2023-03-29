@@ -99,7 +99,6 @@ function init() {
     scene.add(directionalLight);
 
 
-
     // preload video textures
     for(let i = 0; i < VIDEO_NUM; i ++) {
         const video = document.getElementById('video' + String(i));
@@ -200,6 +199,11 @@ function init() {
 
 
 function postProcess() {
+    const manager = new THREE.LoadingManager();
+    manager.onLoad = function () {
+        console.log('all items loaded');
+    };
+
 
     let index = 0;
     fbx_model.traverse((child)=>{
@@ -235,7 +239,7 @@ function postProcess() {
                 mat = img_mats[String(9)];
             }
 
-            if(index%6 == 0 || index%4 == 0) {
+            if(index%6 == 0 || index%2 == 0) {
                 let mat_ref_index = (index)%3;
                 mat = video_mats[mat_ref_index];
                 
@@ -309,7 +313,7 @@ function tick() {
         if(prev_point  && ishit==false) {
             let material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
             material.transparent = true;
-            material.opacity = 0.5;
+            material.opacity = 0.3;
             let vel = camera_pos.sub(prev_point);
             console.log(vel);
             let vel_mag = Math.sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
@@ -317,6 +321,7 @@ function tick() {
             let box = new THREE.SphereGeometry(vel_mag/5,8,8);
             let track = new THREE.Mesh( box, material );
             track.position.set(prev_point.x, prev_point.y, prev_point.z);
+            track.name = frame;
             scene.add(track);
 
             let points = [];
@@ -335,7 +340,7 @@ function tick() {
         }
     }
 
-    const linkThresh = 10;
+    const linkThresh = 6;
     controls.update();
     renderer.render(scene, camera); // レンダリング
     TWEEN.update();
@@ -348,13 +353,26 @@ function tick() {
         let dist = Math.abs(intersects[0].distance);
         // console.log("dist: ",dist);
 
-        let colorThresh = 200;
+        let colorThresh = 150;
         focused_object = intersects[0].object;
 
         if(dist < colorThresh) {
             let colorFactor = dist/colorThresh;
             console.log(colorFactor);
             intersects[0].object.material.uniforms.uColorFactor.value = 1.0 - colorFactor;
+
+            if(selected_page) {
+                console.log("oldpage",selected_page);
+                let prev_page = selected_page;
+                console.log("oldpage","page" + String(selected_page));
+
+                prev_page.classList.remove('fade-out');
+                prev_page.classList.add('fade-in');  
+                prev_page.classList.remove('scroll-in');
+                prev_page.classList.add('scroll-out');  
+                //prev_page.setAttribute('style','visibility:hidden');
+            }
+
         }
         else {
             intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
@@ -383,24 +401,18 @@ function tick() {
             //     let hiddenButton = document.getElementById('hiddenButton');
             //     hiddenButton.addEventListener( 'click', returnTo3D );
             // }
+
             if(selected_page) {
-                console.log("oldpage",selected_page);
-                let prev_page = selected_page;
-                console.log("oldpage","page" + String(selected_page));
-                prev_page.setAttribute('style','visibility:hidden');
-                prev_page.classList.remove('scroll-in');
-                prev_page.classList.add('scroll-out');   
+                selected_page.classList.remove('fade-in');
+                selected_page.classList.add('fade-out');   
             }
-
-
 
             let page_name = "page" + String(intersects[0].object.material.index);
             let page = document.getElementById(page_name);
-        
-            page.setAttribute('style','visibility:visible');
             //page.setAttribute('style', 'opacity:1');
             page.classList.remove('scroll-out');
             page.classList.add('scroll-in');
+            page.setAttribute('style','visibility:visible');
 
             var newBackground = intersects[0].object.material.uniforms.uTex.value;
             scene.background = newBackground;
