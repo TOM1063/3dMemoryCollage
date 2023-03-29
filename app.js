@@ -30,7 +30,7 @@ const size = {
 };
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(100, size.width / size.height);
+const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
 //const camera = new THREE.OrthographicCamera(size.width/-2,size.width/2,size.height/2,size.height/-2,1,10);
 const controls = new OrbitControls(camera, canvas);
 const renderer = new THREE.WebGLRenderer({
