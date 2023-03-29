@@ -243,10 +243,6 @@ function postProcess() {
                 let mat_ref_index = (index)%3;
                 mat = video_mats[mat_ref_index];
                 
-                //cfeate boundings
-                // let boundingbox = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
-                // boundingbox.setFromObject(child);
-                // boundings.push(boundingbox);
                 objects.push(child);
 
 
@@ -263,9 +259,7 @@ function postProcess() {
             child.receiveShadow = true;
             child.material = mat;
         }
-        //create local data from fbx children index
-        //const add_data = {object_index: index, memory_text:"", image_url:""};
-        //local_json.push(add_data);
+
         index += 1;
     });
 
@@ -291,37 +285,36 @@ function postProcess() {
 
 
 let prev_point;
+let tracks_archive = [];
+let tracks = [];
+let indic_tracks = [];
+
+let track_material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
+track_material.transparent = true;
+track_material.depthTest = true;
+track_material.opacity = 0.4;
+
+let indic_mat = new THREE.MeshBasicMaterial( {color: 0x0000ff});
+indic_mat.transparent = true;
+indic_mat.blending = THREE.AddEquation;
+indic_mat.opacity = 0.4;
 
 function tick() {
     frame += 1;
-
-    // if(fbx_model) {
-    //     fbx_model.traverse((child)=>{
-    //         if(child.isMesh) {
-    //             if(child.focused){
-    //                 child.position.y += 1;
-    //                 child.position.x += 0.01;
-    //                 child.position.z += 0.01;
-    //             }
-    //         }
-    //     });
-    // }
 
     if((frame % 1 == 0)) {
         let camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
 
         if(prev_point  && ishit==false) {
-            let material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
-            material.transparent = true;
-            material.opacity = 0.3;
+
             let vel = camera_pos.sub(prev_point);
-            console.log(vel);
             let vel_mag = Math.sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
-            console.log(vel_mag);
             let box = new THREE.SphereGeometry(vel_mag/5,8,8);
-            let track = new THREE.Mesh( box, material );
+            let track = new THREE.Mesh( box, track_material );
             track.position.set(prev_point.x, prev_point.y, prev_point.z);
             track.name = frame;
+
+            tracks.push(track);
             scene.add(track);
 
             let points = [];
@@ -344,27 +337,31 @@ function tick() {
     controls.update();
     renderer.render(scene, camera); // レンダリング
     TWEEN.update();
+
+
+
+
     //detect hit!!//
     raycaster.setFromCamera( point, camera );
     const intersects = raycaster.intersectObjects( objects );
+
+
+    //on lock on 
     if(intersects[0]) {
         console.log("rock on!");
-        // console.log(intersects);
         let dist = Math.abs(intersects[0].distance);
-        // console.log("dist: ",dist);
 
         let colorThresh = 150;
         focused_object = intersects[0].object;
 
+        //on get close
         if(dist < colorThresh) {
             let colorFactor = dist/colorThresh;
-            console.log(colorFactor);
             intersects[0].object.material.uniforms.uColorFactor.value = 1.0 - colorFactor;
 
+            //hide previous page
             if(selected_page) {
-                console.log("oldpage",selected_page);
                 let prev_page = selected_page;
-                console.log("oldpage","page" + String(selected_page));
 
                 prev_page.classList.remove('fade-out');
                 prev_page.classList.add('fade-in');  
@@ -378,47 +375,50 @@ function tick() {
             intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
         }
 
+
+        //on touch
         if(dist < linkThresh ) {
-            // if(!ishit) {
-            //     console.log("hit!");
-            //     ishit = true;
-            //     controls.enableZoom = false;
-            //     controls.enablePan = false;
-            //     controls.enableRotate = false;
-            //     controls.enableDamping = false;
-            //     focused_object = intersects[0].object;
 
-            //     let page = document.getElementById("page4");
-        
-            //     page.setAttribute('style','visibility:visible');
-            //     //page.setAttribute('style', 'opacity:1');
-            //     page.classList.remove('scroll-out');
-            //     page.classList.add('scroll-in');
-
-            //     page.classList.remove('hidden_page_minimize');
-            //     page.classList.add('hidden_page_extend');
-
-            //     let hiddenButton = document.getElementById('hiddenButton');
-            //     hiddenButton.addEventListener( 'click', returnTo3D );
-            // }
-
+            //initialize page
             if(selected_page) {
                 selected_page.classList.remove('fade-in');
                 selected_page.classList.add('fade-out');   
             }
 
+            //show page
             let page_name = "page" + String(intersects[0].object.material.index);
             let page = document.getElementById(page_name);
-            //page.setAttribute('style', 'opacity:1');
             page.classList.remove('scroll-out');
             page.classList.add('scroll-in');
             page.setAttribute('style','visibility:visible');
 
+            //change background texture
             var newBackground = intersects[0].object.material.uniforms.uTex.value;
             scene.background = newBackground;
             camera.position.set(1000, 1000, 1000);
             selected_page = page;
-            console.log("newpage", selected_page);
+
+
+            //archive tracks
+            for(let i = 0; i < indic_tracks.length; i ++) {
+                //archive and show all tracks
+                let archived_track = indic_tracks[i].clone();
+                archived_track.material = track_material;
+                scene.add(archived_track);
+
+                //remove previous track
+                scene.remove(indic_tracks[i]);
+            }
+
+            //initialize indication tracks
+            indic_tracks = [];
+            indic_tracks = tracks.concat();
+            tracks = [];
+            for(let i = 0; i < indic_tracks.length; i ++) {
+                indic_tracks[i].material = indic_mat;
+
+                scene.add(indic_tracks[i]);
+            }
 
             ishit = true;
 
@@ -445,16 +445,6 @@ function tick() {
 
 function onStart() {
     console.log("onstart");
-    //TWEEN.removeAll();
-    // for (child in fbx_model) {
-    //     if(child.isMesh) {
-    //         console.log("update_pos");
-    //         new TWEEN.Tween(child.position)
-    //         .to({x: 0, y: 0, z: 0},1000)
-    //         .easing(TWEEN.Easing.Exponential.InOut)
-    //         .start();
-    //     }
-    // }
     fbx_model.traverse((child)=>{
         if(child.isMesh){
             console.log("update_pos");
@@ -472,7 +462,6 @@ function onStart() {
 
 
 function generateMediaMat(texture,textureSize, windowSize) {
-    //console.log(texture.image.attributes.width.value);
     console.log(windowSize);
     console.log(textureSize);
     let glsl_mat = new THREE.ShaderMaterial({
@@ -484,8 +473,6 @@ function generateMediaMat(texture,textureSize, windowSize) {
             uTexSizeX: {value: textureSize.width},
             uTexSizeY: {value: textureSize.height},
             uColorFactor: {value:0.0}
-            // uTexSizeX: {value: texture.image.attributes.width.value},
-            // uTexSizeY: {value: texture.image.attributes.height.value}
         },
         vertexShader:
             `
