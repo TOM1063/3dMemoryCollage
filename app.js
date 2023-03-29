@@ -73,7 +73,7 @@ function init() {
     camera.aspect = size.width / size.height;
     camera.position.set(100, 0, 100);
 
-    // controls.enableDamping = false;
+    controls.enableDamping = false;
     controls.target.set(-2, 0, 0);
     controls.zoomSpeed = 0.5;
     controls.panSpeed = 0.5;
@@ -286,6 +286,8 @@ function postProcess() {
 
 
 
+let prev_point;
+
 function tick() {
     frame += 1;
 
@@ -300,6 +302,38 @@ function tick() {
     //         }
     //     });
     // }
+
+    if((frame % 1 == 0)) {
+        let camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
+
+        if(prev_point  && ishit==false) {
+            let material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
+            material.transparent = true;
+            material.opacity = 0.5;
+            let vel = camera_pos.sub(prev_point);
+            console.log(vel);
+            let vel_mag = Math.sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
+            console.log(vel_mag);
+            let box = new THREE.SphereGeometry(vel_mag/5,8,8);
+            let track = new THREE.Mesh( box, material );
+            track.position.set(prev_point.x, prev_point.y, prev_point.z);
+            scene.add(track);
+
+            let points = [];
+            camera_pos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z );
+            points.push(prev_point);
+            points.push(camera_pos);
+            console.log(points);
+            const geometry = new THREE.BufferGeometry().setFromPoints( points );
+            const line = new THREE.Line( geometry, material );
+            scene.add( line );
+
+            prev_point = camera_pos;
+        }
+        else {
+            prev_point = camera_pos;
+        }
+    }
 
     const linkThresh = 10;
     controls.update();
@@ -325,6 +359,7 @@ function tick() {
         else {
             intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
         }
+
         if(dist < linkThresh ) {
             // if(!ishit) {
             //     console.log("hit!");
@@ -373,6 +408,8 @@ function tick() {
             selected_page = page;
             console.log("newpage", selected_page);
 
+            ishit = true;
+
         }
         else {
             ishit = false;
@@ -386,6 +423,7 @@ function tick() {
         }
 
     }
+
     requestAnimationFrame(tick);
 }
 
