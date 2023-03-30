@@ -20,6 +20,7 @@ const VIDEO_NUM = TEXTURE_NUM - IMAGE_NUM;
 
 //DOM定義
 const overlay = document.getElementById( 'overlay' );
+const title = document.getElementById('title');
 const canvas = document.getElementById('myCanvas');
 const startButton = document.getElementById( 'startButton' );
 startButton.addEventListener( 'click', init );
@@ -58,7 +59,7 @@ let selected_page;
 
 let frame = 0;
 
-console.log("hey");
+var arr = [];
 
 
 
@@ -74,7 +75,7 @@ function init() {
     camera.aspect = size.width / size.height;
     camera.position.set(100, 0, 100);
 
-    controls.enableDamping = false;
+    controls.enableDamping = true;
     controls.target.set(target.x, target.y, target.z);
     controls.zoomSpeed = 0.5;
     controls.panSpeed = 0.5;
@@ -292,16 +293,22 @@ let indic_tracks = [];
 
 let track_material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
 track_material.transparent = true;
-track_material.depthTest = true;
-track_material.opacity = 0.4;
+track_material.blending =THREE.AdditiveBlending;
+// track_material.blending =THREE.CustomBlending;
+// track_material.blendEquation = THREE.ReverseSubtractEquation;
+// track_material.blendSrc = THREE.OneMinusSrcSaturationFactor; //default
+// track_material.blendDst = THREE.OneMinusSrcSaturationFactor; //default
+track_material.opacity = 0.2;
 
 let indic_mat = new THREE.MeshBasicMaterial( {color: 0x0000ff});
 indic_mat.transparent = true;
-indic_mat.blending = THREE.AddEquation;
-indic_mat.opacity = 0.4;
+indic_mat.blending =THREE.AdditiveBlending;
+indic_mat.opacity = 1;
 
 
 const track_thresh = 700;
+
+let title_typed = true;
 
 function tick() {
     frame += 1;
@@ -381,6 +388,17 @@ function tick() {
                 //prev_page.setAttribute('style','visibility:hidden');
             }
 
+            title.classList.remove('fade-in');
+            title.classList.add('fade-out');
+            title.classList.remove('scroll-out');
+            title.classList.add('scroll-in');
+
+            if(title_typed == false) {
+                console.log("animate");
+                TypingAnime();/* アニメーション用の関数を呼ぶ*/
+                title_typed  = true;
+            }
+
         }
         else {
             intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
@@ -389,6 +407,12 @@ function tick() {
 
         //on touch
         if(dist < linkThresh ) {
+
+            title.classList.remove('fade-out');
+            title.classList.add('fade-in');
+            title.classList.remove('scroll-in');
+            title.classList.add('scroll-out');
+            title.setAttribute('style','visibility:visible');
 
             //initialize page
             if(selected_page) {
@@ -408,7 +432,7 @@ function tick() {
             scene.background = newBackground;
             let random_theta = Math.random()*360;
             console.log(random_theta);
-            camera.position.set(1000*Math.sin(random_theta), 1000, 1000*Math.cos(random_theta));
+            camera.position.set(1000*Math.sin(random_theta), 500, 1000*Math.cos(random_theta));
             selected_page = page;
 
 
@@ -434,6 +458,8 @@ function tick() {
             }
 
             ishit = true;
+            TypingInit(); 
+            title_typed  = false;
 
         }
         else {
@@ -532,3 +558,14 @@ window.addEventListener("resize", () => {
         }
     });
 });
+
+
+
+
+
+
+    // 画面が読み込まれたらすぐに動かしたい場合の記述
+$(window).on('load', function () {
+    TypingInit(); //初期設定
+    TypingAnime();/* アニメーション用の関数を呼ぶ*/
+});// ここまで画面が読み込まれたらすぐに動かしたい場合の記述

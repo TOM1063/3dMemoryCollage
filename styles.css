@@ -107,7 +107,7 @@ input {
     color:rgb(0, 0, 255);
     width:70%;
     margin-top:40vw;
-    /* background: rgba(2550,255,255,0.2); */
+    background: rgba(2550,255,255,0.2);
     border: 0;
     border: 1px solid rgb(0, 0, 255);
     padding-left:10px;
@@ -203,6 +203,10 @@ header {
     height:4rem;
 }
 
+#title {
+    pointer-events: none;
+}
+
 .title {
     pointer-events: none;
     z-index: 50;
@@ -217,13 +221,14 @@ header {
     z-index: 50;
     padding-top:6px;
     /* color: rgba(0, 0, 255, 0.766); */
-    color: rgba(100, 100, 100);
+    color: rgb(255, 255, 255);
     margin: 0;
     height:100%;
     font-size: 2rem;
     font-family: video, serif;
     font-style: normal;
     font-weight: 400;
+    letter-spacing: 1.5rem;
     /* font-family: "ta-kaku-shadow", sans-serif;
     font-weight: 400;
     font-style: normal; */
@@ -242,7 +247,9 @@ header {
 }
 
 #main_title {
+    color: rgba(100, 100, 100);
     font-size: 5rem;
+    letter-spacing: 0;
 }
 
 
