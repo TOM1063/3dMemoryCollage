@@ -58,6 +58,7 @@ var arr = [];
 
 function init() {
   console.log("start");
+  console.log("window_size:", size);
   overlay.remove();
 
   // シーンを作成
@@ -72,8 +73,8 @@ function init() {
 
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
-  // const bg_color  = new THREE.Color(0.9,0.9,0.9);
-  const bg_color = new THREE.Color(0.9, 0.9, 0.9);
+  //const bg_color = new THREE.Color(0, 0, 255);
+  const bg_color = new THREE.Color(0.0, 0.0, 1.0);
   renderer.setClearColor(bg_color, 1);
 
   // const texture = imageLoader.load('./shader/imgs/test10.JPG' );
@@ -114,7 +115,6 @@ function init() {
 
   //generate loading promises
   for (let i = 0; i < TEXTURE_NUM; i++) {
-    console.log("loop");
     if (i >= VIDEO_NUM) {
       let url = "./shader/imgs/test" + String(i - VIDEO_NUM) + ".JPG";
       const promise = new Promise((resolve, reject) => {
@@ -127,9 +127,6 @@ function init() {
               width: texture.image.width,
               height: texture.image.height,
             };
-            console.log("------------------this is image-------------");
-            console.log(texture);
-            console.log(texture.image);
             let mat = generateMediaMat(texture, textureSize, size);
             img_mats[String(i - VIDEO_NUM)] = mat;
             resolve();
@@ -143,9 +140,6 @@ function init() {
       let texture = videoTextures[i];
       texture.magFilter = THREE.LinearFilter;
       texture.minFilter = THREE.LinearFilter;
-      console.log("------------------this is video-------------");
-      console.log(texture);
-      console.log(texture.image);
       let textureSize = {
         width: texture.image.width,
         height: texture.image.height,
@@ -159,7 +153,7 @@ function init() {
   const fbxLoader = new FBXLoader();
   const fbx_load_pormise = new Promise((resolve, reject) => {
     fbxLoader.load(
-      "./warehouse2.fbx",
+      "./pointcloud_with_normal.fbx",
       (object) => {
         object.scale.set(0.01, 0.01, 0.01);
         object.traverse((child) => {
@@ -186,8 +180,6 @@ function init() {
 
   //promises done
   Promise.all(dataLoadingPromises).then((results) => {
-    console.log("-------------mats------------");
-    console.log(video_mats);
     postProcess();
   });
 }
@@ -230,18 +222,10 @@ function postProcess() {
       if (child.groupName == "panel") {
         mat = img_mats[String(9)];
       }
-
-      if (index % 6 == 0 || index % 2 == 0) {
+      if (child.groupName == "scan_object") {
         let mat_ref_index = index % 3;
         mat = video_mats[mat_ref_index];
-
         objects.push(child);
-
-        if (mat_ref_index > 11) {
-          let sound = sounds[mat_ref_index - 11];
-          sound.play();
-          child.add(sound);
-        }
       }
 
       mat.depthTest = true;
@@ -266,7 +250,6 @@ function postProcess() {
   });
   scene.add(fbx_model);
   const num_childs = index;
-  console.log(num_childs);
   onStart();
 
   tick();
@@ -343,7 +326,7 @@ function tick() {
     }
   }
 
-  const linkThresh = 6;
+  const linkThresh = 3;
   controls.update();
   renderer.render(scene, camera); // レンダリング
   TWEEN.update();
@@ -357,14 +340,20 @@ function tick() {
     console.log("rock on!");
     let dist = Math.abs(intersects[0].distance);
 
-    let colorThresh = 150;
+    let colorThresh = 100;
     focused_object = intersects[0].object;
 
     //on get close
     if (dist < colorThresh) {
       let colorFactor = dist / colorThresh;
-      intersects[0].object.material.uniforms.uColorFactor.value =
-        1.0 - colorFactor;
+
+      //const bg_color = new THREE.Color(0, 0, 255);
+      const bg_color = new THREE.Color(0, 0, 0);
+      scene.background = NaN;
+      renderer.setClearColor(bg_color, 1);
+
+      //   intersects[0].object.material.uniforms.uColorFactor.value =
+      //     1.0 - colorFactor;
 
       //hide previous page
       if (selected_page) {
@@ -388,7 +377,7 @@ function tick() {
         title_typed = true;
       }
     } else {
-      intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
+      //intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
     }
 
     //on touch
@@ -453,7 +442,7 @@ function tick() {
     }
   } else {
     if (focused_object) {
-      focused_object.material.uniforms.uColorFactor.value = 0.0;
+      //focused_object.material.uniforms.uColorFactor.value = 0.0;
       focused_object = "";
     }
   }
@@ -478,6 +467,9 @@ function generateMediaMat(texture, textureSize, windowSize) {
   console.log(windowSize);
   console.log(textureSize);
   let glsl_mat = new THREE.ShaderMaterial({
+    lights: {
+      value: true,
+    },
     transparent: true,
     uniforms: {
       uTex: { type: "t", value: texture }, // テスクチャを uTex として渡す
@@ -485,29 +477,42 @@ function generateMediaMat(texture, textureSize, windowSize) {
       uWindowSizeY: { value: windowSize.height },
       uTexSizeX: { value: textureSize.width },
       uTexSizeY: { value: textureSize.height },
-      uColorFactor: { value: 0.0 },
+      uColorFactor: { value: 1.0 },
     },
     vertexShader: `
+            varying float vDotProduct;
+
             void main() {
+                vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+                vec3 norm = normalize(normalMatrix * normal);
+                vDotProduct = dot(norm, normalize(- viewPosition.xyz));
                 vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
                 vec4 mvPosition =  viewMatrix * worldPosition;
                 gl_Position = projectionMatrix * mvPosition;
             }
             `,
     fragmentShader: `
-            precision mediump float;
+            varying float vDotProduct;
+
+            #include <common>
+            #include <lights_pars_begin>
+
+            // precision mediump float;
             uniform sampler2D uTex;
             uniform float uWindowSizeX;
             uniform float uWindowSizeY;
             uniform float uTexSizeX;
             uniform float uTexSizeY;
             uniform float uColorFactor;
+
             void main() {
-                vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
-                vec2 screenUVs = vec2(gl_FragCoord.x / uWindowSizeX*0.5, gl_FragCoord.y/uWindowSizeY*0.5);
-                vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
-                vec3 color = vec3(texture_color.r*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.g*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.b );
-                gl_FragColor = vec4(color.rgb, 1.0);
+              float opacity = (vDotProduct);
+          
+              vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
+              vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
+              vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
+              vec3 color = vec3(texture_color.r*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.g*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.b );
+              gl_FragColor = vec4(color.rgb,opacity);
             }
             `,
   });
