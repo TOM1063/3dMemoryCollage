@@ -153,7 +153,7 @@ function init() {
   const fbxLoader = new FBXLoader();
   const fbx_load_pormise = new Promise((resolve, reject) => {
     fbxLoader.load(
-      "./pointcloud_with_normal.fbx",
+      "./point_binary_reduced.fbx",
       (object) => {
         object.scale.set(0.01, 0.01, 0.01);
         object.traverse((child) => {
