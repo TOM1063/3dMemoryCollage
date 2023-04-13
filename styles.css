@@ -1,7 +1,21 @@
+main {
+    z-index: 0;
+    position:fixed;
+    width:100vw;
+    height:100vh;
+}
+
+
+.title-font {
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
+}
+
 #overlay {
 	position: absolute;
 	font-size: 16px;
-	z-index: 2;
+	z-index: 1;
 	top: 0;
 	left: 0;
 	width: 100%;
@@ -10,10 +24,11 @@
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background: rgba(0,0,205);
+	background: rgba(205,205,205);
 }
 
-#overlay button {
+.button {
+    font-size: 1.7rem;
     background: transparent;
     border: 0;
     border: 1px solid rgb(255, 255, 255);
@@ -22,6 +37,10 @@
     padding: 12px 18px;
     text-transform: uppercase;
     cursor: pointer;
+
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
 }
 
 input {
@@ -34,17 +53,73 @@ input {
     left: 50%;
 }
 
-.button{
-    font-size:1rem;
-    border:none;
-    display: block;
-    margin:10px auto;
-    background-color: rgba(255, 255, 255, 0.302);
+
+.hidden_page {
+
+    visibility:hidden;
+    position: absolute;
+	font-size: 16px;
+	z-index: 100;
+	top: 0;
+	left: 0;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	/* justify-content: center; */
+	flex-direction: column;
+    opacity: 1;
     color:white;
-    left: 50%;
+    
 }
 
+.hidden_page_extend{
+    height:200vh;
+}
+.hidden_page_minimize{
+    height:100vh;
+}
 
+.hidden_contents {
+    z-index:100;
+    color:white;
+    width:70%;
+    margin-top:20vw;
+    background: rgba(0, 0, 255,0.7);
+    border: 0;
+    border: 1px solid rgb(255, 255, 255);
+    padding-left:10px;
+    padding-right:10px;
+}
+
+.hiddenButton {
+    margin-top:82vh;
+    margin-left:1vh;
+
+}
+
+.window_frame {
+    width:90vw;
+    height:90vh;
+    border: 0;
+    border: 2px solid rgb(255, 255, 255);
+    position: absolute;
+    bottom: 5vh;
+
+}
+
+.fade-in {
+    opacity: 0;
+    transition-duration: 3000ms;
+    transition-property: opacity;
+  }
+  
+
+.scroll-in {
+    opacity: 1;
+}
+.scroll-out {
+    opacity: 0;
+}
 
 .dom_wrapper {
     position:fixed;
@@ -96,7 +171,7 @@ header {
 }
 
 .title {
-    z-index: 100;
+    z-index: 50;
     position:fixed;
     text-align: left;
     height:50px;
@@ -105,23 +180,27 @@ header {
 
 }
 .title h1 {
+    z-index: 50;
     padding-top:6px;
-    color: rgba(255, 255, 255, 0.766);
+    color: rgba(0, 0, 255, 0.766);
     margin: 0;
     height:100%;
     font-size: 2rem;
-    font-family: "ヒラギノ角ゴ ProN W3";
-    font-style:italic;
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
 }
 
 .title h2 {
+    z-index: 50;
     padding-top:0;
-    color: rgba(255, 255, 255, 0.766);
+    color: rgba(255, 255, 255);
     margin: 0;
     height:60%;
-    font-size: 0.7rem;
-    font-family: "ヒラギノ角ゴ ProN W3";
-    font-style:italic;
+    font-size: 0.9rem;
+    font-family: video, serif;
+    font-style: normal;
+    font-weight: 400;
 }
 
 #main_title {
