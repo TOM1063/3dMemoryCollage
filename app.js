@@ -7,6 +7,8 @@ let videoTextures = [];
 let video_mats = {};
 let img_mats = {};
 let fbx_model = [];
+let fbx_models = [];
+let model_urls = ["./point_binary_reduced.fbx"]; //"./structure.fbx", "./pointclouds.fbx"
 
 let dataLoadingPromises = [];
 
@@ -150,38 +152,43 @@ function init() {
     }
   }
 
-  const fbxLoader = new FBXLoader();
-  const fbx_load_pormise = new Promise((resolve, reject) => {
-    fbxLoader.load(
-      "./point_with_roof_onlyobj.fbx",
-      (object) => {
-        object.scale.set(0.01, 0.01, 0.01);
-        object.traverse((child) => {
-          if (child.isGroup) {
-            let group_name = child.name;
-            if (child.children) {
-              let sub_models = child.children;
-              sub_models.forEach((elem) => {
-                if (elem.isMesh) {
-                  elem.groupName = group_name;
-                }
-              });
-            }
-          }
-        });
-        fbx_model = object;
-        resolve();
-      },
-      undefined,
-      reject
-    );
-  });
-  dataLoadingPromises.push(fbx_load_pormise);
+  //--------------fbx loader------------------
 
-  //promises done
-  Promise.all(dataLoadingPromises).then((results) => {
-    postProcess();
-  });
+  const fbxLoader = new FBXLoader();
+
+  for (let i = 0; i < model_urls.length; i++) {
+    const fbx_load_pormise = new Promise((resolve, reject) => {
+      fbxLoader.load(
+        model_urls[i],
+        (object) => {
+          object.scale.set(0.01, 0.01, 0.01);
+          object.traverse((child) => {
+            if (child.isGroup) {
+              let group_name = child.name;
+              if (child.children) {
+                let sub_models = child.children;
+                sub_models.forEach((elem) => {
+                  if (elem.isMesh) {
+                    elem.groupName = group_name;
+                  }
+                });
+              }
+            }
+          });
+          fbx_models.push(object);
+          resolve();
+        },
+        undefined,
+        reject
+      );
+    });
+    dataLoadingPromises.push(fbx_load_pormise);
+
+    //promises done
+    Promise.all(dataLoadingPromises).then((results) => {
+      postProcess();
+    });
+  }
 }
 
 function postProcess() {
@@ -191,65 +198,67 @@ function postProcess() {
   };
 
   let index = 0;
-  fbx_model.traverse((child) => {
-    if (child.isMesh) {
-      let mat = new THREE.MeshLambertMaterial({
-        color: child.material.emissive,
-        emissive: child.material.color,
-        // transparent: true,
-        // opacity: 0.7,
-        depthTest: false,
-        //wireframe: true,
-      });
+  for (let i = 0; i < fbx_models.length; i++) {
+    fbx_models[i].traverse((child) => {
+      if (child.isMesh) {
+        let mat = new THREE.MeshLambertMaterial({
+          color: child.material.emissive,
+          emissive: child.material.color,
+          // transparent: true,
+          // opacity: 0.7,
+          depthTest: false,
+          //wireframe: true,
+        });
 
-      if (child.groupName == "steel") {
-        if (index % 2 == 0) {
-          mat = img_mats[String(5)];
-        } else {
-          mat = img_mats[String(10)];
+        if (child.groupName == "steel") {
+          if (index % 2 == 0) {
+            mat = img_mats[String(5)];
+          } else {
+            mat = img_mats[String(10)];
+          }
         }
-      }
-      if (child.groupName == "concrete") {
-        mat = img_mats[String(6)];
+        if (child.groupName == "concrete") {
+          mat = img_mats[String(6)];
+        }
+
+        if (child.groupName == "roof") {
+          mat = img_mats[String(7)];
+        }
+        if (child.groupName == "tesuri") {
+          mat = img_mats[String(8)];
+        }
+        if (child.groupName == "panel") {
+          mat = img_mats[String(9)];
+        }
+        if (child.groupName == "scan_object") {
+          let mat_ref_index = index % 3;
+          mat = video_mats[mat_ref_index];
+          objects.push(child);
+        }
+
+        mat.depthTest = true;
+        child.castShadow = true;
+        child.receiveShadow = true;
+        child.material = mat;
       }
 
-      if (child.groupName == "roof") {
-        mat = img_mats[String(7)];
-      }
-      if (child.groupName == "tesuri") {
-        mat = img_mats[String(8)];
-      }
-      if (child.groupName == "panel") {
-        mat = img_mats[String(9)];
-      }
-      if (child.groupName == "scan_object") {
-        let mat_ref_index = index % 3;
-        mat = video_mats[mat_ref_index];
-        objects.push(child);
-      }
+      index += 1;
+    });
 
-      mat.depthTest = true;
-      child.castShadow = true;
-      child.receiveShadow = true;
-      child.material = mat;
-    }
-
-    index += 1;
-  });
-
-  fbx_model.traverse((child) => {
-    if (child.isMesh) {
-      //console.log(child);
-      child.position.x = Math.random() * 30000 - 15000;
-      child.position.y = Math.random() * 30000 - 15000;
-      child.position.z = Math.random() * 30000 - 15000;
-      // var helper = new THREE.EdgesHelper(child, 0xffffff );
-      // helper.material.linewidth = 2;
-      // child.add( helper );
-    }
-  });
-  scene.add(fbx_model);
-  const num_childs = index;
+    fbx_models[i].traverse((child) => {
+      if (child.isMesh) {
+        //console.log(child);
+        child.position.x = Math.random() * 30000 - 15000;
+        child.position.y = Math.random() * 30000 - 15000;
+        child.position.z = Math.random() * 30000 - 15000;
+        // var helper = new THREE.EdgesHelper(child, 0xffffff );
+        // helper.material.linewidth = 2;
+        // child.add( helper );
+      }
+    });
+    scene.add(fbx_models[i]);
+    const num_childs = index;
+  }
   onStart();
 
   tick();
@@ -452,15 +461,17 @@ function tick() {
 
 function onStart() {
   console.log("onstart");
-  fbx_model.traverse((child) => {
-    if (child.isMesh) {
-      console.log("update_pos");
-      new TWEEN.Tween(child.position)
-        .to({ x: 2000, y: 0, z: 2000 }, 6000)
-        .easing(TWEEN.Easing.Elastic.In)
-        .start();
-    }
-  });
+  for (let i = 0; i < fbx_models.length; i++) {
+    fbx_models[i].traverse((child) => {
+      if (child.isMesh) {
+        console.log("update_pos");
+        new TWEEN.Tween(child.position)
+          .to({ x: 2000, y: 0, z: 2000 }, 6000)
+          .easing(TWEEN.Easing.Elastic.In)
+          .start();
+      }
+    });
+  }
 }
 
 function generateMediaMat(texture, textureSize, windowSize) {
