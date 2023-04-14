@@ -8,7 +8,7 @@ let video_mats = {};
 let img_mats = {};
 let fbx_model = [];
 let fbx_models = [];
-let model_urls = ["./point_binary_reduced.fbx"]; //"./structure.fbx", "./pointclouds.fbx"
+let model_urls = ["./pointcloud_mesh_covered.fbx", "./structure_mesh.fbx"]; //"./structure.fbx", "./pointclouds.fbx"
 
 let dataLoadingPromises = [];
 
@@ -202,8 +202,8 @@ function postProcess() {
     fbx_models[i].traverse((child) => {
       if (child.isMesh) {
         let mat = new THREE.MeshLambertMaterial({
-          color: child.material.emissive,
-          emissive: child.material.color,
+          // color: child.material.emissive,
+          // emissive: child.material.color,
           // transparent: true,
           // opacity: 0.7,
           depthTest: false,
@@ -220,23 +220,36 @@ function postProcess() {
         if (child.groupName == "concrete") {
           mat = img_mats[String(6)];
         }
-
         if (child.groupName == "roof") {
           mat = img_mats[String(7)];
         }
         if (child.groupName == "tesuri") {
           mat = img_mats[String(8)];
         }
+        if (child.groupName == "Aluminum") {
+          mat = img_mats[String(8)];
+        }
+
         if (child.groupName == "panel") {
           mat = img_mats[String(9)];
         }
+        // if (child.groupName == "bluesheet") {
+        //   mat = new THREE.MeshLambertMaterial({
+        //     color: 0xffffff,
+        //     // emissive: child.material.color,
+        //     // transparent: true,
+        //     // opacity: 0.7,
+        //     depthTest: false,
+        //     //wireframe: true,
+        //   });
+        // }
         if (child.groupName == "scan_object") {
-          let mat_ref_index = index % 3;
+          let mat_ref_index = (index - 1) % 3;
           mat = video_mats[mat_ref_index];
           objects.push(child);
         }
 
-        mat.depthTest = true;
+        // mat.depthTest = true;
         child.castShadow = true;
         child.receiveShadow = true;
         child.material = mat;
@@ -517,7 +530,7 @@ function generateMediaMat(texture, textureSize, windowSize) {
             uniform float uColorFactor;
 
             void main() {
-              float opacity = (vDotProduct);
+              float opacity = (vDotProduct)*2.0 - 1.0;
           
               vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
               vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
