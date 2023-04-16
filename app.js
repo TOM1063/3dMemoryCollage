@@ -27,6 +27,39 @@ const size = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
+let mouse = new THREE.Vector2(0, 0);
+
+let camera_util = {
+  pos: new THREE.Vector3(0, 0, 0),
+  rot: new THREE.Vector3(0, 0, 0),
+  dir: new THREE.Vector3(0, 0, 0),
+  look: new THREE.Vector3(0, 0, 0),
+};
+
+function update_freeCamera(target_camera, util, mouse) {
+  const view_arround_factor = 0.01 * -1;
+  let dx = mouse.x * view_arround_factor;
+  let ry = mouse.y * (3.14 / 2);
+  util.rot.x += dx;
+  util.rot.y = ry;
+
+  util.dir.x = Math.sin(util.rot.x);
+  util.dir.y = Math.cos(util.rot.x);
+  util.dir.z = Math.sin(util.rot.y);
+
+  const motion_factor = 0.1;
+  let speed = motion_factor;
+  util.pos.x += util.dir.x * speed;
+  util.pos.y += util.dir.y * speed;
+  util.pos.z += util.dir.z * speed;
+  target_camera.position.set(util.pos.x, util.pos.y, util.pos.z);
+
+  const direction_factor = 1;
+  util.look.x = util.pos.x + util.dir.x * direction_factor;
+  util.look.y = util.pos.y + util.dir.y * direction_factor;
+  util.look.z = util.pos.z + util.dir.z * direction_factor;
+  target_camera.lookAt(util.look.x, util.look.y, util.look.z);
+}
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
@@ -350,6 +383,7 @@ function tick() {
 
   const linkThresh = 3;
   controls.update();
+  //update_freeCamera(camera, camera_util, mouse);
   renderer.render(scene, camera); // レンダリング
   TWEEN.update();
 
@@ -370,7 +404,7 @@ function tick() {
       let colorFactor = dist / colorThresh;
 
       //const bg_color = new THREE.Color(0, 0, 255);
-      const bg_color = new THREE.Color(0, 0, 0);
+      const bg_color = new THREE.Color(0, 0, 255);
       scene.background = NaN;
       renderer.setClearColor(bg_color, 1);
 
@@ -564,3 +598,8 @@ $(window).on("load", function () {
   TypingInit(); //初期設定
   TypingAnime(); /* アニメーション用の関数を呼ぶ*/
 }); // ここまで画面が読み込まれたらすぐに動かしたい場合の記述
+
+window.addEventListener("mousemove", function (e) {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+});
