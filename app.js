@@ -47,7 +47,7 @@ let moveRight = false;
 
 function update_freeCamera(target_camera, util, mouse) {
   const view_arround_factor = 3.14 / 2;
-  let yaw = mouse.x * view_arround_factor;
+  let yaw = mouse.x * view_arround_factor * 1.2;
   let pitch = mouse.y * (-3.14 / 2);
   let yaw_thresh = 3.14 / 2 - 0.1;
   if (Math.abs(yaw) < yaw_thresh) {
@@ -60,11 +60,10 @@ function update_freeCamera(target_camera, util, mouse) {
   util.rot.x = util.head_rot.x + util.body_rot.x;
   util.rot.y = pitch;
 
-  util.dir.x = Math.sin(-util.rot.x);
-  util.dir.z = Math.cos(util.rot.x);
+  util.dir.x = Math.sin(-util.rot.x) * Math.cos(util.rot.y);
+  util.dir.z = Math.cos(util.rot.x) * Math.cos(util.rot.y);
   util.dir.y = Math.sin(util.rot.y);
-  const motion_factor = 1;
-  let speed = motion_factor;
+
   let forward_vel = util.dir;
   let right_vel = new THREE.Vector3(
     Math.cos(util.rot.x),
@@ -88,6 +87,8 @@ function update_freeCamera(target_camera, util, mouse) {
     right_vel.y * Number(moveLeft);
   //let vel2 = (right_vel * Number(moveRight)).sub(right_vel * Number(moveLeft));
   //let vel = vel1.add(vel2) * speed;
+  const motion_factor = 0.5;
+  let speed = motion_factor;
 
   util.pos.x += vel_x * speed;
   util.pos.y += vel_y * speed;
@@ -155,7 +156,7 @@ function init() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
   //const bg_color = new THREE.Color(0, 0, 255);
-  const bg_color = new THREE.Color(0.0, 0.0, 1.0);
+  const bg_color = new THREE.Color(0.9, 0.9, 0.9);
   renderer.setClearColor(bg_color, 1);
 
   // const texture = imageLoader.load('./shader/imgs/test10.JPG' );
@@ -281,11 +282,11 @@ function postProcess() {
     fbx_models[i].traverse((child) => {
       if (child.isMesh) {
         let mat = new THREE.MeshLambertMaterial({
-          // color: child.material.emissive,
-          // emissive: child.material.color,
-          // transparent: true,
-          // opacity: 0.7,
-          depthTest: false,
+          color: 0xffffff,
+          emissive: 0xffffff,
+          transparent: true,
+          opacity: 0.2,
+          //depthTest: false,
           //wireframe: true,
         });
 
@@ -312,6 +313,7 @@ function postProcess() {
         if (child.groupName == "panel") {
           mat = img_mats[String(9)];
         }
+
         // if (child.groupName == "bluesheet") {
         //   mat = new THREE.MeshLambertMaterial({
         //     color: 0xffffff,
@@ -325,6 +327,7 @@ function postProcess() {
         if (child.groupName == "scan_object") {
           let mat_ref_index = (index - 1) % 3;
           mat = video_mats[mat_ref_index];
+          mat.uniforms.uNormalFactor.value = 1.0;
           objects.push(child);
         }
 
@@ -364,6 +367,7 @@ let indic_tracks = [];
 let track_material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 track_material.transparent = true;
 track_material.blending = THREE.AdditiveBlending;
+
 // track_material.blending =THREE.CustomBlending;
 // track_material.blendEquation = THREE.ReverseSubtractEquation;
 // track_material.blendSrc = THREE.OneMinusSrcSaturationFactor; //default
@@ -372,7 +376,7 @@ track_material.opacity = 0.2;
 
 let indic_mat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
 indic_mat.transparent = true;
-indic_mat.blending = THREE.AdditiveBlending;
+//indic_mat.blending = THREE.AdditiveBlending;
 indic_mat.opacity = 1;
 
 const track_thresh = 700;
@@ -389,7 +393,7 @@ function tick() {
   );
 
   if (true) {
-    if (frame % 1 == 0) {
+    if (frame % 4 == 0) {
       let camera_pos = new THREE.Vector3(
         camera.position.x,
         camera.position.y,
@@ -399,13 +403,15 @@ function tick() {
       if (prev_point && ishit == false) {
         let vel = camera_pos.sub(prev_point);
         let vel_mag = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-        let box = new THREE.SphereGeometry(vel_mag / 7, 8, 8);
-        let track = new THREE.Mesh(box, track_material);
-        track.position.set(prev_point.x, prev_point.y, prev_point.z);
-        track.name = frame;
+        //vel_mag / 7
 
-        tracks.push(track);
-        scene.add(track);
+        // let box = new THREE.SphereGeometry(0.7, 8, 8);
+        // let track = new THREE.Mesh(box, track_material);
+        // track.position.set(prev_point.x, prev_point.y, prev_point.z);
+        // track.name = frame;
+
+        // tracks.push(track);
+        // scene.add(track);
 
         let points = [];
         camera_pos = new THREE.Vector3(
@@ -413,12 +419,17 @@ function tick() {
           camera.position.y,
           camera.position.z
         );
-        // points.push(prev_point);
-        // points.push(camera_pos);
-        // console.log(points);
-        // const geometry = new THREE.BufferGeometry().setFromPoints( points );
-        // const line = new THREE.Line( geometry, material );
-        // scene.add( line );
+        points.push(prev_point);
+        points.push(camera_pos);
+        //console.log(points);
+
+        let line_mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(geometry, line_mat);
+        line.name = frame;
+        scene.add(line);
+        tracks.push(line);
 
         prev_point = camera_pos;
       } else {
@@ -513,11 +524,11 @@ function tick() {
       scene.background = newBackground;
       let random_theta = Math.random() * 360;
       console.log(random_theta);
-      camera.position.set(
-        1000 * Math.sin(random_theta),
-        500,
-        1000 * Math.cos(random_theta)
-      );
+      camera_util.body_rot.set(3.14, -3.14 / 4, 0);
+      camera_util.head_rot.set(0, 0, 0);
+      camera_util.rot.set(3.14, -3.14 / 4, 0);
+      camera_util.pos.set(-10, 100, 100);
+      camera_util.dir.set(-10, -100, -100);
       selected_page = page;
 
       //archive tracks
@@ -587,6 +598,7 @@ function generateMediaMat(texture, textureSize, windowSize) {
       uTexSizeX: { value: textureSize.width },
       uTexSizeY: { value: textureSize.height },
       uColorFactor: { value: 1.0 },
+      uNormalFactor: { value: 0.0 },
     },
     vertexShader: `
             varying float vDotProduct;
@@ -613,9 +625,13 @@ function generateMediaMat(texture, textureSize, windowSize) {
             uniform float uTexSizeX;
             uniform float uTexSizeY;
             uniform float uColorFactor;
+            uniform float uNormalFactor;
 
             void main() {
-              float opacity = (vDotProduct)*2.0 - 1.0;
+              float opacity = (1.0 - vDotProduct)*4.0;
+              if(uNormalFactor == 1.0) {
+                opacity = (vDotProduct)*2.0 - 1.0;
+              }
           
               vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
               vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
