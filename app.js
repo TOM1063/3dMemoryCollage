@@ -19,6 +19,7 @@ const CAMERA_CONTROL = 1;
 
 //DOM定義
 const overlay = document.getElementById("overlay");
+const loading = document.getElementById("loading");
 const title = document.getElementById("title");
 const canvas = document.getElementById("myCanvas");
 const startButton = document.getElementById("startButton");
@@ -272,6 +273,7 @@ function init() {
 }
 
 function postProcess() {
+  loading.remove();
   const manager = new THREE.LoadingManager();
   manager.onLoad = function () {
     console.log("all items loaded");
@@ -527,8 +529,8 @@ function tick() {
       camera_util.body_rot.set(3.14, -3.14 / 4, 0);
       camera_util.head_rot.set(0, 0, 0);
       camera_util.rot.set(3.14, -3.14 / 4, 0);
-      camera_util.pos.set(-10, 100, 100);
-      camera_util.dir.set(-10, -100, -100);
+      camera_util.pos.set(-10, 200, 200);
+      camera_util.dir.set(-10, -200, -200);
       selected_page = page;
 
       //archive tracks
