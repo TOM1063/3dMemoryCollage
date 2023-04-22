@@ -242,11 +242,12 @@ function postProcess() {
         });
 
         if (child.groupName == "steel") {
-          if (index % 2 == 0) {
-            mat = img_mats[String(5)];
-          } else {
+          if (index % 1 == 0) {
             mat = img_mats[String(10)];
           }
+          // else {
+          //   mat = img_mats[String(10)];
+          // }
         }
         if (child.groupName == "concrete") {
           mat = img_mats[String(6)];
