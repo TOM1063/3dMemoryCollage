@@ -97,6 +97,12 @@ function init() {
     controls.panSpeed = 0.5;
   }
 
+  camera_util.body_rot.set(3.14, -3.14 / 4, 0);
+  camera_util.head_rot.set(0, 0, 0);
+  camera_util.rot.set(3.14, -3.14 / 4, 0);
+  camera_util.pos.set(-10, 200, 200);
+  camera_util.dir.set(-10, -200, -200);
+
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
   //const bg_color = new THREE.Color(0, 0, 255);
@@ -309,6 +315,10 @@ let tracks_archive = [];
 let tracks = [];
 let indic_tracks = [];
 
+let enter_point;
+let enter_points = [];
+let indic_enter_point;
+
 let track_material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 track_material.transparent = true;
 track_material.blending = THREE.AdditiveBlending;
@@ -320,9 +330,15 @@ track_material.blending = THREE.AdditiveBlending;
 track_material.opacity = 0.2;
 
 let indic_mat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-indic_mat.transparent = true;
-//indic_mat.blending = THREE.AdditiveBlending;
-indic_mat.opacity = 1;
+let indic_point_mat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+indic_point_mat.transparent = true;
+indic_point_mat.blending = THREE.AdditiveBlending;
+indic_point_mat.opacity = 1;
+
+let box = new THREE.SphereGeometry(2, 8, 8);
+indic_enter_point = new THREE.Mesh(box, indic_point_mat);
+indic_enter_point.position.set(10000, 10000, 10000);
+scene.add(indic_enter_point);
 
 const track_thresh = 700;
 
@@ -383,7 +399,7 @@ function tick() {
     }
   }
 
-  const linkThresh = 3;
+  const linkThresh = 1;
 
   if (CAMERA_CONTROL == 0) {
     controls.update();
@@ -403,7 +419,7 @@ function tick() {
     console.log("rock on!");
     let dist = Math.abs(intersects[0].distance);
 
-    let colorThresh = 100;
+    let colorThresh = 50;
     focused_object = intersects[0].object;
 
     //on get close
@@ -415,8 +431,8 @@ function tick() {
       scene.background = NaN;
       renderer.setClearColor(bg_color, 1);
 
-      //   intersects[0].object.material.uniforms.uColorFactor.value =
-      //     1.0 - colorFactor;
+      intersects[0].object.material.uniforms.uColorFactor.value =
+        1.0 - colorFactor;
 
       //hide previous page
       if (selected_page) {
@@ -464,6 +480,13 @@ function tick() {
       page.classList.add("scroll-in");
       page.setAttribute("style", "visibility:visible");
 
+      // indicate enter point
+      indic_enter_point.position.set(
+        camera_util.pos.x,
+        camera_util.pos.y,
+        camera_util.pos.z
+      );
+
       //change background texture
       var newBackground = intersects[0].object.material.uniforms.uTex.value;
       scene.background = newBackground;
@@ -505,7 +528,7 @@ function tick() {
     }
   } else {
     if (focused_object) {
-      //focused_object.material.uniforms.uColorFactor.value = 0.0;
+      focused_object.material.uniforms.uColorFactor.value = 0.0;
       focused_object = "";
     }
   }
@@ -575,13 +598,12 @@ function generateMediaMat(texture, textureSize, windowSize) {
             void main() {
               float opacity = (1.0 - vDotProduct)*4.0;
               if(uNormalFactor == 1.0) {
-                opacity = (vDotProduct)*2.0 - 1.0;
+                opacity = ((vDotProduct)*2.0 - 1.0)*(1.0 - uColorFactor) + uColorFactor;
               }
-          
               vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
               vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
               vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
-              vec3 color = vec3(texture_color.r*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.g*uColorFactor + texture_color.b*(1.0-uColorFactor),texture_color.b );
+              vec3 color = vec3(texture_color.r , texture_color.g, texture_color.b );
               gl_FragColor = vec4(color.rgb,opacity);
             }
             `,
