@@ -278,7 +278,7 @@ function postProcess() {
         if (child.groupName == "scan_object") {
           let mat_ref_index = (index - 1) % 3;
           mat = video_mats[mat_ref_index];
-          mat.uniforms.uNormalFactor.value = 1.0;
+          mat.uniforms.uNormalFactor.value = 0.0;
           objects.push(child);
         }
 
