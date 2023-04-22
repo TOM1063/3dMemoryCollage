@@ -15,6 +15,7 @@ let dataLoadingPromises = [];
 const TEXTURE_NUM = 14;
 const IMAGE_NUM = 11;
 const VIDEO_NUM = TEXTURE_NUM - IMAGE_NUM;
+const CAMERA_CONTROL = 1;
 
 //DOM定義
 const overlay = document.getElementById("overlay");
@@ -28,32 +29,71 @@ const size = {
   height: window.innerHeight,
 };
 let mouse = new THREE.Vector2(0, 0);
+let mouse_prev = new THREE.Vector2(0, 0);
 
 let camera_util = {
   pos: new THREE.Vector3(0, 0, 0),
   rot: new THREE.Vector3(0, 0, 0),
+  head_rot: new THREE.Vector3(0, 0, 0),
+  body_rot: new THREE.Vector3(0, 0, 0),
   dir: new THREE.Vector3(0, 0, 0),
   look: new THREE.Vector3(0, 0, 0),
 };
 
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+
 function update_freeCamera(target_camera, util, mouse) {
-  const view_arround_factor = 0.01 * -1;
-  let dx = mouse.x * view_arround_factor;
-  let ry = mouse.y * (3.14 / 2);
-  util.rot.x += dx;
-  util.rot.y = ry;
+  const view_arround_factor = 3.14 / 2;
+  let yaw = mouse.x * view_arround_factor;
+  let pitch = mouse.y * (-3.14 / 2);
+  let yaw_thresh = 3.14 / 2 - 0.1;
+  if (Math.abs(yaw) < yaw_thresh) {
+    util.head_rot.x = yaw;
+  } else if (yaw < -yaw_thresh) {
+    util.body_rot.x -= 0.01;
+  } else if (yaw > yaw_thresh) {
+    util.body_rot.x += 0.01;
+  }
+  util.rot.x = util.head_rot.x + util.body_rot.x;
+  util.rot.y = pitch;
 
-  util.dir.x = Math.sin(util.rot.x);
-  util.dir.y = Math.cos(util.rot.x);
-  util.dir.z = Math.sin(util.rot.y);
-
-  const motion_factor = 0.1;
+  util.dir.x = Math.sin(-util.rot.x);
+  util.dir.z = Math.cos(util.rot.x);
+  util.dir.y = Math.sin(util.rot.y);
+  const motion_factor = 1;
   let speed = motion_factor;
-  util.pos.x += util.dir.x * speed;
-  util.pos.y += util.dir.y * speed;
-  util.pos.z += util.dir.z * speed;
-  target_camera.position.set(util.pos.x, util.pos.y, util.pos.z);
+  let forward_vel = util.dir;
+  let right_vel = new THREE.Vector3(
+    Math.cos(util.rot.x),
+    0,
+    Math.sin(util.rot.x)
+  );
+  let vel_x =
+    forward_vel.x * Number(moveForward) -
+    forward_vel.x * Number(moveBackward) +
+    right_vel.x * Number(moveRight) -
+    right_vel.x * Number(moveLeft);
+  let vel_z =
+    forward_vel.z * Number(moveForward) -
+    forward_vel.z * Number(moveBackward) +
+    right_vel.z * Number(moveRight) -
+    right_vel.z * Number(moveLeft);
+  let vel_y =
+    forward_vel.y * Number(moveForward) -
+    forward_vel.y * Number(moveBackward) +
+    right_vel.y * Number(moveRight) -
+    right_vel.y * Number(moveLeft);
+  //let vel2 = (right_vel * Number(moveRight)).sub(right_vel * Number(moveLeft));
+  //let vel = vel1.add(vel2) * speed;
 
+  util.pos.x += vel_x * speed;
+  util.pos.y += vel_y * speed;
+  util.pos.z += vel_z * speed;
+
+  target_camera.position.set(util.pos.x, util.pos.y, util.pos.z);
   const direction_factor = 1;
   util.look.x = util.pos.x + util.dir.x * direction_factor;
   util.look.y = util.pos.y + util.dir.y * direction_factor;
@@ -64,7 +104,11 @@ function update_freeCamera(target_camera, util, mouse) {
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
 //const camera = new THREE.OrthographicCamera(size.width/-2,size.width/2,size.height/2,size.height/-2,1,10);
-const controls = new OrbitControls(camera, canvas);
+
+if (CAMERA_CONTROL == 0) {
+  const controls = new OrbitControls(camera, canvas);
+}
+
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
 });
@@ -101,10 +145,12 @@ function init() {
   camera.aspect = size.width / size.height;
   camera.position.set(100, 0, 100);
 
-  controls.enableDamping = true;
-  controls.target.set(target.x, target.y, target.z);
-  controls.zoomSpeed = 0.5;
-  controls.panSpeed = 0.5;
+  if (CAMERA_CONTROL == 0) {
+    controls.enableDamping = true;
+    controls.target.set(target.x, target.y, target.z);
+    controls.zoomSpeed = 0.5;
+    controls.panSpeed = 0.5;
+  }
 
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
@@ -382,8 +428,13 @@ function tick() {
   }
 
   const linkThresh = 3;
-  controls.update();
-  //update_freeCamera(camera, camera_util, mouse);
+
+  if (CAMERA_CONTROL == 0) {
+    controls.update();
+  } else if (CAMERA_CONTROL == 1) {
+    update_freeCamera(camera, camera_util, mouse);
+  }
+
   renderer.render(scene, camera); // レンダリング
   TWEEN.update();
 
@@ -404,7 +455,7 @@ function tick() {
       let colorFactor = dist / colorThresh;
 
       //const bg_color = new THREE.Color(0, 0, 255);
-      const bg_color = new THREE.Color(0, 0, 255);
+      const bg_color = new THREE.Color(0.9, 0.9, 0.9);
       scene.background = NaN;
       renderer.setClearColor(bg_color, 1);
 
@@ -600,6 +651,51 @@ $(window).on("load", function () {
 }); // ここまで画面が読み込まれたらすぐに動かしたい場合の記述
 
 window.addEventListener("mousemove", function (e) {
+  mouse_prev = mouse;
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
 });
+
+window.addEventListener(
+  "keydown",
+  function (e) {
+    console.log("key_down : " + String(e.code));
+    switch (e.code) {
+      case "KeyW": // w
+        console.log("move forwerd");
+        moveForward = true;
+        break;
+      case "KeyD": // a
+        moveLeft = true;
+        break;
+      case "KeyS": // s
+        moveBackward = true;
+        break;
+      case "KeyA": // d
+        moveRight = true;
+        break;
+    }
+  },
+  false
+);
+
+window.addEventListener(
+  "keyup",
+  function (e) {
+    switch (e.code) {
+      case "KeyW": // w
+        moveForward = false;
+        break;
+      case "KeyD": // a
+        moveLeft = false;
+        break;
+      case "KeyS": // s
+        moveBackward = false;
+        break;
+      case "KeyA": // d
+        moveRight = false;
+        break;
+    }
+  },
+  false
+);
