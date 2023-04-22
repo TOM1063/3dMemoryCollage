@@ -597,7 +597,7 @@ function generateMediaMat(texture, textureSize, windowSize) {
 
             void main() {
               float opacity = (1.0 - vDotProduct)*4.0;
-              if(uNormalFactor == 1.0) {
+              if(uNormalFactor == 0.0) {
                 opacity = ((vDotProduct)*2.0 - 1.0)*(1.0 - uColorFactor) + uColorFactor;
               }
               vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
