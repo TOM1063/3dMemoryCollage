@@ -332,12 +332,14 @@ track_material.blending = THREE.AdditiveBlending;
 track_material.opacity = 0.2;
 
 let indic_mat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-let indic_point_mat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+indic_mat.transparent = true;
+indic_mat.opacity = 0.2;
+let indic_point_mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 indic_point_mat.transparent = true;
 indic_point_mat.blending = THREE.AdditiveBlending;
 indic_point_mat.opacity = 1;
 
-let box = new THREE.SphereGeometry(2, 8, 8);
+let box = new THREE.SphereGeometry(3, 8, 8);
 indic_enter_point = new THREE.Mesh(box, indic_point_mat);
 indic_enter_point.position.set(10000, 10000, 10000);
 scene.add(indic_enter_point);
@@ -356,7 +358,7 @@ function tick() {
   );
 
   if (true) {
-    if (frame % 4 == 0) {
+    if (frame % 12 == 0) {
       let camera_pos = new THREE.Vector3(
         camera.position.x,
         camera.position.y,
@@ -368,13 +370,13 @@ function tick() {
         let vel_mag = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
         //vel_mag / 7
 
-        // let box = new THREE.SphereGeometry(0.7, 8, 8);
-        // let track = new THREE.Mesh(box, track_material);
-        // track.position.set(prev_point.x, prev_point.y, prev_point.z);
-        // track.name = frame;
+        let box = new THREE.SphereGeometry(0.3, 8, 8);
+        let track = new THREE.Mesh(box, track_material);
+        track.position.set(prev_point.x, prev_point.y, prev_point.z);
+        track.name = frame;
 
-        // tracks.push(track);
-        // scene.add(track);
+        tracks.push(track);
+        scene.add(track);
 
         let points = [];
         camera_pos = new THREE.Vector3(
@@ -388,11 +390,11 @@ function tick() {
 
         let line_mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const line = new THREE.Line(geometry, line_mat);
-        line.name = frame;
-        scene.add(line);
-        tracks.push(line);
+        // const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        // const line = new THREE.Line(geometry, line_mat);
+        // line.name = frame;
+        // scene.add(line);
+        // tracks.push(line);
 
         prev_point = camera_pos;
       } else {
