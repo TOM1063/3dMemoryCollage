@@ -3,14 +3,26 @@ import * as THREE from "https://unpkg.com/three@0.130.1/build/three.module.js";
 import { OrbitControls } from "https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js";
 // import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js';
 
+import { generateMediaMat } from "./mediaMat.js";
+import { update_freeCamera } from "./freeCam.js";
+
+let model_urls = ["./pointcloud_mesh_covered.fbx", "./structure_mesh.fbx"]; //"./structure.fbx", "./pointclouds.fbx"
+
 let videoTextures = [];
 let video_mats = {};
 let img_mats = {};
 let fbx_model = [];
 let fbx_models = [];
-let model_urls = ["./pointcloud_mesh_covered.fbx", "./structure_mesh.fbx"]; //"./structure.fbx", "./pointclouds.fbx"
 
 let dataLoadingPromises = [];
+
+let objects = [];
+let focused_object;
+
+let ishit = false;
+let selected_page;
+
+let frame = 0;
 
 const TEXTURE_NUM = 14;
 const IMAGE_NUM = 11;
@@ -23,12 +35,12 @@ const loading = document.getElementById("loading");
 const title = document.getElementById("title");
 const canvas = document.getElementById("myCanvas");
 const startButton = document.getElementById("startButton");
-startButton.addEventListener("click", init);
 
 const size = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
+
 let mouse = new THREE.Vector2(0, 0);
 let mouse_prev = new THREE.Vector2(0, 0);
 
@@ -41,10 +53,12 @@ let camera_util = {
   look: new THREE.Vector3(0, 0, 0),
 };
 
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
+let key_state = {
+  moveForward: false,
+  moveBackward: false,
+  moveLeft: false,
+  moveRight: false,
+};
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
@@ -59,26 +73,10 @@ const renderer = new THREE.WebGLRenderer({
 });
 const target = new THREE.Vector3(-2, 0, 0);
 
-const listener = new THREE.AudioListener();
-camera.add(listener);
-const sounds = [];
-
 const imageLoader = new THREE.TextureLoader();
-
-let boundings = [];
 
 const raycaster = new THREE.Raycaster();
 const point = new THREE.Vector2(0, 0);
-
-let objects = [];
-let focused_object;
-
-let ishit = false;
-let selected_page;
-
-let frame = 0;
-
-var arr = [];
 
 function init() {
   console.log("start");
@@ -109,20 +107,6 @@ function init() {
   const bg_color = new THREE.Color(0.9, 0.9, 0.9);
   renderer.setClearColor(bg_color, 1);
 
-  // const texture = imageLoader.load('./shader/imgs/test10.JPG' );
-  // scene.background = texture;
-
-  // create light
-  const lightColor = 0xffff00;
-  const ambientLight = new THREE.AmbientLight(lightColor, 1);
-  scene.add(ambientLight);
-
-  const directionalLight = new THREE.DirectionalLight(lightColor, 1);
-  directionalLight.position.set(10, 10, 10);
-  directionalLight.target.position.set(-5, 0, 0);
-  directionalLight.castShadow = true;
-  scene.add(directionalLight);
-
   // preload video textures
   for (let i = 0; i < VIDEO_NUM; i++) {
     const video = document.getElementById("video" + String(i));
@@ -132,17 +116,6 @@ function init() {
     const videoTexture = new THREE.VideoTexture(video);
     videoTexture.needsUpdate = true;
     videoTextures.push(videoTexture);
-
-    const sound = new THREE.PositionalAudio(listener);
-    video.muted = false;
-    sound.setMediaElementSource(video);
-    sound.setRefDistance(20);
-    sound.setVolume(1.5);
-    sound.setDistanceModel("liner");
-    //songElement.play();
-    sound.hasPlaybackControl = true;
-    sound.play();
-    sounds.push(sound);
   }
 
   //generate loading promises
@@ -181,7 +154,6 @@ function init() {
       video_mats[String(i)] = mat;
     }
   }
-
   //--------------fbx loader------------------
 
   const fbxLoader = new FBXLoader();
@@ -305,10 +277,9 @@ function postProcess() {
       }
     });
     scene.add(fbx_models[i]);
-    const num_childs = index;
   }
-  onStart();
 
+  onStart();
   tick();
 }
 
@@ -344,18 +315,10 @@ indic_enter_point = new THREE.Mesh(box, indic_point_mat);
 indic_enter_point.position.set(10000, 10000, 10000);
 scene.add(indic_enter_point);
 
-const track_thresh = 700;
-
 let title_typed = true;
 
 function tick() {
   frame += 1;
-
-  let dist_from_point = Math.sqrt(
-    (camera.position.x - target.x) * (camera.position.x - target.x) +
-      (camera.position.y - target.y) * (camera.position.y - target.y) +
-      (camera.position.z - target.z) * (camera.position.z - target.z)
-  );
 
   if (true) {
     if (frame % 12 == 0) {
@@ -367,8 +330,6 @@ function tick() {
 
       if (prev_point && ishit == false) {
         let vel = camera_pos.sub(prev_point);
-        let vel_mag = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-        //vel_mag / 7
 
         let box = new THREE.SphereGeometry(0.3, 8, 8);
         let track = new THREE.Mesh(box, track_material);
@@ -388,8 +349,7 @@ function tick() {
         points.push(camera_pos);
         //console.log(points);
 
-        let line_mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
+        //let line_mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         // const geometry = new THREE.BufferGeometry().setFromPoints(points);
         // const line = new THREE.Line(geometry, line_mat);
         // line.name = frame;
@@ -408,7 +368,7 @@ function tick() {
   if (CAMERA_CONTROL == 0) {
     controls.update();
   } else if (CAMERA_CONTROL == 1) {
-    update_freeCamera(camera, camera_util, mouse);
+    update_freeCamera(camera, camera_util, mouse, key_state);
   }
 
   renderer.render(scene, camera); // レンダリング
@@ -555,128 +515,7 @@ function onStart() {
   }
 }
 
-function generateMediaMat(texture, textureSize, windowSize) {
-  console.log(windowSize);
-  console.log(textureSize);
-  let glsl_mat = new THREE.ShaderMaterial({
-    lights: {
-      value: true,
-    },
-    transparent: true,
-    uniforms: {
-      uTex: { type: "t", value: texture }, // テスクチャを uTex として渡す
-      uWindowSizeX: { value: windowSize.width },
-      uWindowSizeY: { value: windowSize.height },
-      uTexSizeX: { value: textureSize.width },
-      uTexSizeY: { value: textureSize.height },
-      uColorFactor: { value: 1.0 },
-      uNormalFactor: { value: 0.0 },
-    },
-    vertexShader: `
-            varying float vDotProduct;
-
-            void main() {
-                vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
-                vec3 norm = normalize(normalMatrix * normal);
-                vDotProduct = dot(norm, normalize(- viewPosition.xyz));
-                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-                vec4 mvPosition =  viewMatrix * worldPosition;
-                gl_Position = projectionMatrix * mvPosition;
-            }
-            `,
-    fragmentShader: `
-            varying float vDotProduct;
-
-            #include <common>
-            #include <lights_pars_begin>
-
-            // precision mediump float;
-            uniform sampler2D uTex;
-            uniform float uWindowSizeX;
-            uniform float uWindowSizeY;
-            uniform float uTexSizeX;
-            uniform float uTexSizeY;
-            uniform float uColorFactor;
-            uniform float uNormalFactor;
-
-            void main() {
-              // float opacity = (1.0 - vDotProduct)*4.0;
-              float opacity = 1.0;
-              if(uNormalFactor == 1.0) {
-                opacity = ((vDotProduct)*2.0 - 1.0)*(1.0 - uColorFactor) + uColorFactor;
-              }
-              vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
-              vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
-              vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
-              vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
-              if(uNormalFactor == 1.0) {
-                color = vec3(texture_color.b * (1.0 - uColorFactor)  + texture_color.r* uColorFactor, texture_color.b * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, 1.0 * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
-              }
-              gl_FragColor = vec4(color.rgb,opacity);
-            }
-            `,
-  });
-
-  let debug_mat = new THREE.MeshLambertMaterial();
-  return glsl_mat;
-}
-
-function update_freeCamera(target_camera, util, mouse) {
-  const view_arround_factor = 3.14 / 2;
-  let yaw = mouse.x * view_arround_factor * 1.2;
-  let pitch = mouse.y * (-3.14 / 2);
-  let yaw_thresh = 3.14 / 2 - 0.1;
-  if (Math.abs(yaw) < yaw_thresh) {
-    util.head_rot.x = yaw;
-  } else if (yaw < -yaw_thresh) {
-    util.body_rot.x -= 0.01;
-  } else if (yaw > yaw_thresh) {
-    util.body_rot.x += 0.01;
-  }
-  util.rot.x = util.head_rot.x + util.body_rot.x;
-  util.rot.y = pitch;
-
-  util.dir.x = Math.sin(-util.rot.x) * Math.cos(util.rot.y);
-  util.dir.z = Math.cos(util.rot.x) * Math.cos(util.rot.y);
-  util.dir.y = Math.sin(util.rot.y);
-
-  let forward_vel = util.dir;
-  let right_vel = new THREE.Vector3(
-    Math.cos(util.rot.x),
-    0,
-    Math.sin(util.rot.x)
-  );
-  let vel_x =
-    forward_vel.x * Number(moveForward) -
-    forward_vel.x * Number(moveBackward) +
-    right_vel.x * Number(moveRight) -
-    right_vel.x * Number(moveLeft);
-  let vel_z =
-    forward_vel.z * Number(moveForward) -
-    forward_vel.z * Number(moveBackward) +
-    right_vel.z * Number(moveRight) -
-    right_vel.z * Number(moveLeft);
-  let vel_y =
-    forward_vel.y * Number(moveForward) -
-    forward_vel.y * Number(moveBackward) +
-    right_vel.y * Number(moveRight) -
-    right_vel.y * Number(moveLeft);
-  //let vel2 = (right_vel * Number(moveRight)).sub(right_vel * Number(moveLeft));
-  //let vel = vel1.add(vel2) * speed;
-  const motion_factor = 0.5;
-  let speed = motion_factor;
-
-  util.pos.x += vel_x * speed;
-  util.pos.y += vel_y * speed;
-  util.pos.z += vel_z * speed;
-
-  target_camera.position.set(util.pos.x, util.pos.y, util.pos.z);
-  const direction_factor = 1;
-  util.look.x = util.pos.x + util.dir.x * direction_factor;
-  util.look.y = util.pos.y + util.dir.y * direction_factor;
-  util.look.z = util.pos.z + util.dir.z * direction_factor;
-  target_camera.lookAt(util.look.x, util.look.y, util.look.z);
-}
+startButton.addEventListener("click", init);
 
 window.addEventListener("resize", () => {
   (size.width = window.innerWidth), (size.height = window.innerHeight);
@@ -711,16 +550,16 @@ window.addEventListener(
     switch (e.code) {
       case "KeyW": // w
         console.log("move forwerd");
-        moveForward = true;
+        key_state.moveForward = true;
         break;
       case "KeyD": // a
-        moveLeft = true;
+        key_state.moveLeft = true;
         break;
       case "KeyS": // s
-        moveBackward = true;
+        key_state.moveBackward = true;
         break;
       case "KeyA": // d
-        moveRight = true;
+        key_state.moveRight = true;
         break;
     }
   },
@@ -732,16 +571,16 @@ window.addEventListener(
   function (e) {
     switch (e.code) {
       case "KeyW": // w
-        moveForward = false;
+        key_state.moveForward = false;
         break;
       case "KeyD": // a
-        moveLeft = false;
+        key_state.moveLeft = false;
         break;
       case "KeyS": // s
-        moveBackward = false;
+        key_state.moveBackward = false;
         break;
       case "KeyA": // d
-        moveRight = false;
+        key_state.moveRight = false;
         break;
     }
   },
