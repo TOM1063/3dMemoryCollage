@@ -24,6 +24,8 @@ let selected_page;
 
 let frame = 0;
 
+let activate_mouse = false;
+
 const TEXTURE_NUM = 14;
 const IMAGE_NUM = 11;
 const VIDEO_NUM = TEXTURE_NUM - IMAGE_NUM;
@@ -41,7 +43,7 @@ const size = {
   height: window.innerHeight,
 };
 
-let mouse = new THREE.Vector2(0, 0);
+let mouse = new THREE.Vector2(0, -0.1);
 let mouse_prev = new THREE.Vector2(0, 0);
 
 let camera_util = {
@@ -95,11 +97,11 @@ function init() {
     controls.panSpeed = 0.5;
   }
 
-  camera_util.body_rot.set(3.14, -3.14 / 4, 0);
-  camera_util.head_rot.set(0, 0, 0);
-  camera_util.rot.set(3.14, -3.14 / 4, 0);
-  camera_util.pos.set(-10, 200, 200);
-  camera_util.dir.set(-10, -200, -200);
+  camera_util.body_rot.set(3.14 + 3.14 / 5, -3.14 / 20, -3.14 / 20);
+  camera_util.head_rot.set(3.14 + 3.14 / 5, -3.14 / 20, -3.14 / 20);
+  //camera_util.rot.set(3.14 / 5, -3.14 / 3, 0);
+  camera_util.pos.set(-130, 110, 200);
+  // camera_util.dir.set(-10, -600, -100);
 
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
@@ -508,11 +510,20 @@ function onStart() {
         console.log("update_pos");
         new TWEEN.Tween(child.position)
           .to({ x: 2000, y: 0, z: 2000 }, 6000)
+          .onComplete(tweenComplete)
           .easing(TWEEN.Easing.Elastic.In)
           .start();
       }
     });
   }
+  new TWEEN.Tween(camera_util.pos)
+    .to({ x: 100, y: 15, z: 100 }, 6000)
+    .easing(TWEEN.Easing.Exponential.In)
+    .start();
+  new TWEEN.Tween(camera_util.body_rot)
+    .to({ x: 3.14 - 3.14 / 5, y: 3.14 / 4, z: 0 }, 6000)
+    .easing(TWEEN.Easing.Exponential.In)
+    .start();
 }
 
 startButton.addEventListener("click", init);
@@ -538,9 +549,11 @@ $(window).on("load", function () {
 }); // ここまで画面が読み込まれたらすぐに動かしたい場合の記述
 
 window.addEventListener("mousemove", function (e) {
-  mouse_prev = mouse;
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+  if (activate_mouse) {
+    mouse_prev = mouse;
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+  }
 });
 
 window.addEventListener(
@@ -586,3 +599,7 @@ window.addEventListener(
   },
   false
 );
+
+function tweenComplete() {
+  activate_mouse = true;
+}
