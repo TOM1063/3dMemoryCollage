@@ -279,7 +279,8 @@ function postProcess() {
         if (child.groupName == "scan_object") {
           let mat_ref_index = (index - 1) % 3;
           mat = video_mats[mat_ref_index];
-          mat.uniforms.uNormalFactor.value = 0.0;
+          mat.uniforms.uNormalFactor.value = 1.0;
+          mat.uniforms.uColorFactor.value = 0.0;
           objects.push(child);
         }
 
@@ -597,14 +598,18 @@ function generateMediaMat(texture, textureSize, windowSize) {
             uniform float uNormalFactor;
 
             void main() {
-              float opacity = (1.0 - vDotProduct)*4.0;
-              if(uNormalFactor == 0.0) {
+              // float opacity = (1.0 - vDotProduct)*4.0;
+              float opacity = 1.0;
+              if(uNormalFactor == 1.0) {
                 opacity = ((vDotProduct)*2.0 - 1.0)*(1.0 - uColorFactor) + uColorFactor;
               }
               vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
               vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
               vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
-              vec3 color = vec3(texture_color.r , texture_color.g, texture_color.b );
+              vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
+              if(uNormalFactor == 1.0) {
+                color = vec3(texture_color.b * (1.0 - uColorFactor)  + texture_color.r* uColorFactor, texture_color.b * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, 1.0 * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
+              }
               gl_FragColor = vec4(color.rgb,opacity);
             }
             `,
