@@ -131,7 +131,7 @@ function init() {
   //generate loading promises
   for (let i = 0; i < TEXTURE_NUM; i++) {
     if (i >= VIDEO_NUM) {
-      let url = "./shader/imgs/test" + String(i - VIDEO_NUM) + ".JPG";
+      let url = "./shader/imgs/test" + String(i - VIDEO_NUM) + ".jpg";
       const promise = new Promise((resolve, reject) => {
         imageLoader.load(
           url,
