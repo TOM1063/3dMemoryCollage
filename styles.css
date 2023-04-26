@@ -49,11 +49,11 @@ main {
 
 .button {
     font-size: 1.3rem;
-    background: rgb(0, 0, 255);
+    background: rgba(0, 0, 255, 0);
     border: 0;
     border: 1px solid rgb(0,0, 255);
     border-radius: 2px;
-    color:  rgb(230, 230, 230);
+    color:  rgb(0,0,255);
     padding: 20px 45px;
     text-transform: uppercase;
     cursor: pointer;
@@ -279,17 +279,34 @@ header {
 }
 
 
-@media screen and (max-width: 640px){
+@media screen and ((max-width: 640px) or (max-height: 640px)){
 .title h1 {
     font-size: 1.6rem;
     /* margin-left:10vw; */
+    margin-top:10vh;
 }
 
 #main_title {
     font-size: 1.6rem;
+    margin-bottom:10vh;
 }
 
 #loading {
     font-size: 0.8rem;
+}
+
+.button {
+    font-size: 1.3rem;
+    background: rgba(0, 0, 255, 0);
+    border: 0;
+    border: 1px solid rgb(0,0, 255);
+    border-radius: 2px;
+    color:  rgb(0,0,255);
+    padding: 10px 25px;
+}
+
+.hidden_contents {
+    font-size: 0.6rem;
+    margin: auto 0;
 }
 }

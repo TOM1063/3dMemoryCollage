@@ -26,8 +26,8 @@ let frame = 0;
 
 let activate_mouse = false;
 
-const TEXTURE_NUM = 14;
-const IMAGE_NUM = 11;
+const TEXTURE_NUM = 9;
+const IMAGE_NUM = 6;
 const VIDEO_NUM = TEXTURE_NUM - IMAGE_NUM;
 const CAMERA_CONTROL = 1;
 let IS_SMARTPHONE = false;
@@ -70,7 +70,8 @@ const controls = new OrbitControls(camera, canvas);
 
 if (
   window.matchMedia &&
-  window.matchMedia("(max-device-width: 640px)").matches
+  (window.matchMedia("(max-device-width: 640px)").matches ||
+    window.matchMedia("(max-device-height: 640px)").matches)
 ) {
   IS_SMARTPHONE = true;
 } else {
@@ -224,27 +225,27 @@ function postProcess() {
 
         if (child.groupName == "steel") {
           if (index % 1 == 0) {
-            mat = img_mats[String(10)];
+            mat = img_mats[String(5)];
           }
           // else {
           //   mat = img_mats[String(10)];
           // }
         }
         if (child.groupName == "concrete") {
-          mat = img_mats[String(6)];
+          mat = img_mats[String(1)];
         }
         if (child.groupName == "roof") {
-          mat = img_mats[String(7)];
+          mat = img_mats[String(2)];
         }
         if (child.groupName == "tesuri") {
-          mat = img_mats[String(8)];
+          mat = img_mats[String(3)];
         }
         if (child.groupName == "Aluminum") {
-          mat = img_mats[String(8)];
+          mat = img_mats[String(3)];
         }
 
         if (child.groupName == "panel") {
-          mat = img_mats[String(9)];
+          mat = img_mats[String(4)];
         }
 
         // if (child.groupName == "bluesheet") {

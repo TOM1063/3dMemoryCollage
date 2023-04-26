@@ -51,7 +51,25 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
                   opacity = ((vDotProduct)*2.0 - 1.0)*(1.0 - uColorFactor) + uColorFactor;
                 }
                 vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
-                vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
+                vec2 windowSize = vec2(uWindowSizeX, uWindowSizeY);
+                float textureAspect = textureSize.x / textureSize.y;
+                float windowAspect = windowSize.x / windowSize.y;
+
+                float repeatx = 1.0;
+                float repeaty = 1.0;
+                float offsetx = 0.0;
+                float offsety = 0.0;
+
+                if(windowAspect < textureAspect) {
+                    repeatx = windowAspect / textureAspect;
+                    offsetx = (1.0 - repeatx) / 2.0;
+                }
+                else {
+                    repeaty = textureAspect / windowAspect;
+                    offsety = (1.0 - repeaty) / 2.0;
+                }
+
+                vec2 screenUVs = vec2((gl_FragCoord.x*0.5 / uWindowSizeX) * repeatx + offsetx, (gl_FragCoord.y*0.5/uWindowSizeY))*repeaty + offsety;
                 vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
                 vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
                 //vec3 color = vec3(1.0, texture_color.r, texture_color.r);
