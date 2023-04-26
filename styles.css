@@ -279,18 +279,17 @@ header {
 }
 
 
-@media screen and (max-width: 480px){
+@media screen and (max-width: 640px){
 .title h1 {
-    padding-top:6px;
-    color: white;
-    margin: 0;
-    height:100%;
-    font-size: 2rem;
-    font-family: "ヒラギノ角ゴ ProN W3";
-    font-style:italic;
+    font-size: 1.6rem;
+    /* margin-left:10vw; */
 }
 
 #main_title {
-    font-size: 4rem;
+    font-size: 1.6rem;
+}
+
+#loading {
+    font-size: 0.8rem;
 }
 }

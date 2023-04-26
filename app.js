@@ -30,6 +30,7 @@ const TEXTURE_NUM = 14;
 const IMAGE_NUM = 11;
 const VIDEO_NUM = TEXTURE_NUM - IMAGE_NUM;
 const CAMERA_CONTROL = 1;
+let IS_SMARTPHONE = false;
 
 //DOM定義
 const overlay = document.getElementById("overlay");
@@ -64,11 +65,18 @@ let key_state = {
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
+const controls = new OrbitControls(camera, canvas);
 //const camera = new THREE.OrthographicCamera(size.width/-2,size.width/2,size.height/2,size.height/-2,1,10);
 
-if (CAMERA_CONTROL == 0) {
-  const controls = new OrbitControls(camera, canvas);
+if (
+  window.matchMedia &&
+  window.matchMedia("(max-device-width: 640px)").matches
+) {
+  IS_SMARTPHONE = true;
+} else {
+  IS_SMARTPHONE = false;
 }
+console.log("IS_SMARTPHONE : " + String(IS_SMARTPHONE));
 
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
@@ -90,19 +98,18 @@ function init() {
   camera.aspect = size.width / size.height;
   camera.position.set(100, 0, 100);
 
-  if (CAMERA_CONTROL == 0) {
+  if (IS_SMARTPHONE) {
     controls.enableDamping = true;
     controls.target.set(target.x, target.y, target.z);
     controls.zoomSpeed = 0.5;
     controls.panSpeed = 0.5;
+  } else {
+    camera_util.body_rot.set(3.14 + 3.14 / 5, -3.14 / 20, -3.14 / 20);
+    camera_util.head_rot.set(3.14 + 3.14 / 5, -3.14 / 20, -3.14 / 20);
+    //camera_util.rot.set(3.14 / 5, -3.14 / 3, 0);
+    camera_util.pos.set(-130, 110, 200);
+    // camera_util.dir.set(-10, -600, -100);
   }
-
-  camera_util.body_rot.set(3.14 + 3.14 / 5, -3.14 / 20, -3.14 / 20);
-  camera_util.head_rot.set(3.14 + 3.14 / 5, -3.14 / 20, -3.14 / 20);
-  //camera_util.rot.set(3.14 / 5, -3.14 / 3, 0);
-  camera_util.pos.set(-130, 110, 200);
-  // camera_util.dir.set(-10, -600, -100);
-
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
   //const bg_color = new THREE.Color(0, 0, 255);
@@ -367,9 +374,9 @@ function tick() {
 
   const linkThresh = 1;
 
-  if (CAMERA_CONTROL == 0) {
+  if (IS_SMARTPHONE) {
     controls.update();
-  } else if (CAMERA_CONTROL == 1) {
+  } else {
     update_freeCamera(camera, camera_util, mouse, key_state);
   }
 
@@ -385,7 +392,12 @@ function tick() {
     console.log("rock on!");
     let dist = Math.abs(intersects[0].distance);
 
-    let colorThresh = 50;
+    let colorThresh;
+    if (IS_SMARTPHONE) {
+      colorThresh = 100;
+    } else {
+      colorThresh = 50;
+    }
     focused_object = intersects[0].object;
 
     //on get close
@@ -454,15 +466,30 @@ function tick() {
       );
 
       //change background texture
-      var newBackground = intersects[0].object.material.uniforms.uTex.value;
-      scene.background = newBackground;
+      let new_texture = intersects[0].object.material.uniforms.uTex.value;
+      let textureAspect = new_texture.image.width / new_texture.image.height;
+      let aspect = size.width / size.height;
+
+      if (aspect < textureAspect) {
+        new_texture.repeat.x = aspect / textureAspect;
+        new_texture.offset.x = (1 - new_texture.repeat.x) / 2;
+      } else {
+        new_texture.repeat.y = textureAspect / aspect;
+        new_texture.offset.y = (1 - new_texture.repeat.y) / 2;
+      }
+
+      scene.background = new_texture;
       let random_theta = Math.random() * 360;
       console.log(random_theta);
-      camera_util.body_rot.set(3.14, -3.14 / 4, 0);
-      camera_util.head_rot.set(0, 0, 0);
-      camera_util.rot.set(3.14, -3.14 / 4, 0);
-      camera_util.pos.set(-10, 200, 200);
-      camera_util.dir.set(-10, -200, -200);
+      if (IS_SMARTPHONE) {
+        camera.position.set(-10, 200, 200);
+      } else {
+        camera_util.body_rot.set(3.14, -3.14 / 4, 0);
+        camera_util.head_rot.set(0, 0, 0);
+        camera_util.rot.set(3.14, -3.14 / 4, 0);
+        camera_util.pos.set(-10, 200, 200);
+        camera_util.dir.set(-10, -200, -200);
+      }
       selected_page = page;
 
       //archive tracks

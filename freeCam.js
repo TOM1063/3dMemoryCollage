@@ -1,16 +1,30 @@
 import * as THREE from "https://unpkg.com/three@0.130.1/build/three.module.js";
 
+let rotating_body_left = false;
+let rotating_body_right = false;
 export const update_freeCamera = (target_camera, util, mouse, key_state) => {
   const view_arround_factor = 3.14 / 2;
   let yaw = mouse.x * view_arround_factor * 1.2;
   let pitch = mouse.y * (-3.14 / 2);
-  let yaw_thresh = 3.14 / 2 - 0.1;
+  let yaw_thresh = 3.14 / 2 - 0.01;
   if (Math.abs(yaw) < yaw_thresh) {
-    util.head_rot.x = yaw;
+    if (!rotating_body_left && !rotating_body_right) {
+      util.head_rot.x = yaw;
+    } else {
+      if (rotating_body_left && yaw > 0) {
+        rotating_body_left = false;
+        util.body_rot.x += util.head_rot.x;
+      } else if (rotating_body_right && yaw < 0) {
+        rotating_body_right = false;
+        util.body_rot.x += util.head_rot.x;
+      }
+    }
   } else if (yaw < -yaw_thresh) {
     util.body_rot.x -= 0.01;
+    rotating_body_left = true;
   } else if (yaw > yaw_thresh) {
     util.body_rot.x += 0.01;
+    rotating_body_right = true;
   }
   util.rot.x = util.head_rot.x + util.body_rot.x;
   util.rot.y = pitch;

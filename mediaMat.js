@@ -54,8 +54,10 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
                 vec2 screenUVs = vec2(gl_FragCoord.x*0.5 / uWindowSizeX, gl_FragCoord.y*0.5/uWindowSizeY);
                 vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
                 vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
+                //vec3 color = vec3(1.0, texture_color.r, texture_color.r);
                 if(uNormalFactor == 1.0) {
                   color = vec3(texture_color.b * (1.0 - uColorFactor)  + texture_color.r* uColorFactor, texture_color.b * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, 1.0 * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
+                  //color = vec3( 1.0 * (1.0 - uColorFactor)  + texture_color.r* uColorFactor ,(1.0 - texture_color.r) * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, (1.0 - texture_color.r) * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
                 }
                 gl_FragColor = vec4(color.rgb,opacity);
               }
