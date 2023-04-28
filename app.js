@@ -23,7 +23,7 @@ var SETTING_DB = {
     {
       class_name: "欠けた壁",
       video: "testvideo0.mp4",
-      texture: [],
+      texture: ["IMG_20230428_0003.jpg"],
     },
     {
       class_name: "敷かれたブルーシートとブロック",
@@ -209,11 +209,11 @@ function init() {
   const memories_num = SETTING_DB.memories_tex.length;
   for (let i = 0; i < memories_num; i++) {
     let memory = SETTING_DB.memories_tex[i];
-    let vide0_file_name = memory.video;
+    let vide_file_name = memory.video;
     let class_name = memory.class_name;
     const promise = new Promise((resolve, reject) => {
-      const video = document.getElementById(vide0_file_name);
-      video.src = TEX_PATH + vide0_file_name;
+      const video = document.getElementById(vide_file_name);
+      video.src = TEX_PATH + vide_file_name;
       video.muted = true;
       video.play();
       const videoTexture = new THREE.VideoTexture(video);
@@ -222,6 +222,7 @@ function init() {
       videoTextures.push(new_data);
       resolve();
     });
+    dataLoadingPromises.push(promise);
   }
 
   // make memory mats
@@ -333,8 +334,12 @@ function postProcess() {
 
         let class_name_ = child.groupName;
         if (class_name_.includes("memory_")) {
-          console.log(class_name_.split("memory_")[1]);
-          mat = video_mats[i % 3].mat;
+          class_name_ = class_name_.split("memory_")[1];
+          console.log(class_name_);
+          let mat_object = video_mats.find(
+            ({ class_name }) => class_name === class_name_
+          );
+          mat = mat_object.mat;
           mat.uniforms.uNormalFactor.value = 1.0;
           mat.uniforms.uColorFactor.value = 0.0;
           mat.side = THREE.DoubleSide;
