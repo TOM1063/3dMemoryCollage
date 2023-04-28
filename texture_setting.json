@@ -1,0 +1,25 @@
+var texture_setting = {
+    "buildings": [
+        {"name": "structure","model": "structure_mesh.fbx"},
+        {"name": "pointcloud","model": "pointcloud_mesh_covered.fbx"}
+    ],
+    "building_tex" :  [
+        {"class_name" : "steel","texture": "test0.jpg"},
+        {"class_name" : "concrete","texture": "test1.jpg"},
+        {"class_name" : "tesuri", "texture": "test3.jpg"},
+        {"class_name" : "pannel", "texture": "test4.jpg"},
+        {"class_name" : "roof", "texture": "test2.jpg"},
+        {"class_name" : "alminum", "texture": "test3.jpg"}
+    ],
+    "memories_tex" : [
+        {"class_name" : "memory_0","video" :  "testvideo0.mp4",
+            "texture" : ["memory_0_0.jpg","memory_0_1.jpg","memory_0_2.jpg"]
+        },
+        {"class_name" : "memory_1","video" :  "testvideo1.mp4",
+            "texture" : ["memory_1_0.jpg","memory_1_1.jpg","memory_1_2.jpg"]
+        },
+        {"class_name" : "memory_2","video" :  "testvideo2.mp4",
+            "texture" : ["memory_2_0.jpg","memory_2_1.jpg","memory_2_2.jpg"]
+        }
+    ]
+}

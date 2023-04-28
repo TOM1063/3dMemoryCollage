@@ -69,6 +69,12 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
                     offsety = (1.0 - repeaty) / 2.0;
                 }
 
+                if(false) {
+                  repeatx *= 2.0/3.0;
+                  repeaty *= 2.0/3.0;
+                  
+                }
+
                 vec2 screenUVs = vec2((gl_FragCoord.x*0.5 / uWindowSizeX) * repeatx + offsetx, (gl_FragCoord.y*0.5/uWindowSizeY))*repeaty + offsety;
                 vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
                 vec3 color = vec3(texture_color.b, texture_color.b, 1.0);

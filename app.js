@@ -6,11 +6,55 @@ import { OrbitControls } from "https://unpkg.com/three@0.126.1/examples/jsm/cont
 import { generateMediaMat } from "./mediaMat.js";
 import { update_freeCamera } from "./freeCam.js";
 
-let model_urls = ["./pointcloud_mesh_covered.fbx", "./structure_mesh.fbx"]; //"./structure.fbx", "./pointclouds.fbx"
+var SETTING_DB = {
+  buildings: [
+    { name: "structure", model: "structure_mesh.fbx" },
+    { name: "pointcloud", model: "pointcloud_mesh_covered.fbx" },
+  ],
+  building_tex: [
+    { class_name: "steel", texture: "test0.jpg" },
+    { class_name: "concrete", texture: "test1.jpg" },
+    { class_name: "tesuri", texture: "test3.jpg" },
+    { class_name: "panel", texture: "test4.jpg" },
+    { class_name: "roof", texture: "test2.jpg" },
+    { class_name: "Aluminum", texture: "test3.jpg" },
+  ],
+  memories_tex: [
+    {
+      class_name: "memory_0",
+      video: "testvideo0.mp4",
+      texture: [],
+    },
+    {
+      class_name: "memory_1",
+      video: "testvideo1.mp4",
+      texture: [],
+    },
+    {
+      class_name: "memory_2",
+      video: "testvideo2.mp4",
+      texture: [],
+    },
+  ],
+};
+
+let TEX_PATH = "shader/imgs/";
+let MODEL_PATH = "";
+
+//get models url
+let model_urls = []; //"./structure.fbx", "./pointclouds.fbx"
+for (let i = 0; i < SETTING_DB.buildings.length; i++) {
+  let building = SETTING_DB.buildings[i];
+  model_urls.push(String(MODEL_PATH + building.model));
+}
+console.log(model_urls);
 
 let videoTextures = [];
-let video_mats = {};
-let img_mats = {};
+
+let video_mats = [];
+let img_mats = [];
+let building_mats = [];
+
 let fbx_model = [];
 let fbx_models = [];
 
@@ -26,8 +70,8 @@ let frame = 0;
 
 let activate_mouse = false;
 
-const TEXTURE_NUM = 9;
-const IMAGE_NUM = 6;
+const TEXTURE_NUM = 10;
+const IMAGE_NUM = 7;
 const VIDEO_NUM = TEXTURE_NUM - IMAGE_NUM;
 const CAMERA_CONTROL = 1;
 let IS_SMARTPHONE = false;
@@ -117,21 +161,74 @@ function init() {
   const bg_color = new THREE.Color(0.9, 0.9, 0.9);
   renderer.setClearColor(bg_color, 1);
 
-  // preload video textures
-  for (let i = 0; i < VIDEO_NUM; i++) {
-    const video = document.getElementById("video" + String(i));
-    video.src = "shader/imgs/testvideo" + String(i) + ".mp4";
-    video.muted = true;
-    video.play();
-    const videoTexture = new THREE.VideoTexture(video);
-    videoTexture.needsUpdate = true;
-    videoTextures.push(videoTexture);
+  //make building mats
+  let building_tex_num = SETTING_DB.building_tex.length;
+  for (let i = 0; i < building_tex_num; i++) {
+    let building_tex = SETTING_DB.building_tex[i];
+    let class_name = building_tex.class_name;
+    let url = TEX_PATH + building_tex.texture;
+    let mat;
+    const building_tex_load_promise = new Promise((resolve, reject) => {
+      imageLoader.load(
+        url,
+        function (image) {
+          let texture = image;
+          texture.needsUpdate = true;
+          let textureSize = {
+            width: texture.image.width,
+            height: texture.image.height,
+          };
+          mat = generateMediaMat(texture, textureSize, size);
+          let new_building_tex_data = { class_name: class_name, mat: mat };
+          building_mats.push(new_building_tex_data);
+          resolve();
+        },
+        undefined,
+        reject
+      );
+    });
+    dataLoadingPromises.push(building_tex_load_promise);
   }
 
-  //generate loading promises
-  for (let i = 0; i < TEXTURE_NUM; i++) {
-    if (i >= VIDEO_NUM) {
-      let url = "./shader/imgs/test" + String(i - VIDEO_NUM) + ".jpg";
+  // preload video textures
+  const memories_num = SETTING_DB.memories_tex.length;
+  for (let i = 0; i < memories_num; i++) {
+    let memory = SETTING_DB.memories_tex[i];
+    let vide0_file_name = memory.video;
+    let class_name = memory.class_name;
+    const promise = new Promise((resolve, reject) => {
+      const video = document.getElementById(vide0_file_name);
+      video.src = TEX_PATH + vide0_file_name;
+      video.muted = true;
+      video.play();
+      const videoTexture = new THREE.VideoTexture(video);
+      videoTexture.needsUpdate = true;
+      let new_data = { class_name: class_name, texture: videoTexture };
+      videoTextures.push(new_data);
+      resolve();
+    });
+  }
+
+  // make memory mats
+  for (let i = 0; i < memories_num; i++) {
+    let memory = SETTING_DB.memories_tex[i];
+    let video_texture = videoTextures[i].texture;
+    let class_name = memory.class_name;
+    video_texture.magFilter = THREE.LinearFilter;
+    video_texture.minFilter = THREE.LinearFilter;
+    let video_textureSize = {
+      width: video_texture.image.width,
+      height: video_texture.image.height,
+    };
+    let mat = generateMediaMat(video_texture, video_textureSize, size);
+    mat.index = i;
+    let new_video_tex_data = { class_name: class_name, mat: mat };
+    video_mats.push(new_video_tex_data);
+
+    let mats = [];
+    for (let i = 0; i < memory.texture.length; i++) {
+      let tex_file = memory.texture[i];
+      let url = TEX_PATH + tex_file;
       const promise = new Promise((resolve, reject) => {
         imageLoader.load(
           url,
@@ -143,7 +240,9 @@ function init() {
               height: texture.image.height,
             };
             let mat = generateMediaMat(texture, textureSize, size);
-            img_mats[String(i - VIDEO_NUM)] = mat;
+            mats[i] = mat;
+            let new_img_tex_data = { class_name: class_name, mats: mats };
+            img_mats.push(new_img_tex_data);
             resolve();
           },
           undefined,
@@ -151,23 +250,11 @@ function init() {
         );
       });
       dataLoadingPromises.push(promise);
-    } else {
-      let texture = videoTextures[i];
-      texture.magFilter = THREE.LinearFilter;
-      texture.minFilter = THREE.LinearFilter;
-      let textureSize = {
-        width: texture.image.width,
-        height: texture.image.height,
-      };
-      let mat = generateMediaMat(texture, textureSize, size);
-      mat.index = i;
-      video_mats[String(i)] = mat;
     }
   }
-  //--------------fbx loader------------------
 
+  //laod fbx model
   const fbxLoader = new FBXLoader();
-
   for (let i = 0; i < model_urls.length; i++) {
     const fbx_load_pormise = new Promise((resolve, reject) => {
       fbxLoader.load(
@@ -195,15 +282,21 @@ function init() {
       );
     });
     dataLoadingPromises.push(fbx_load_pormise);
-
-    //promises done
-    Promise.all(dataLoadingPromises).then((results) => {
-      postProcess();
-    });
   }
+
+  //promises done
+  Promise.all(dataLoadingPromises).then((results) => {
+    postProcess();
+    onStart();
+    tick();
+  });
 }
 
 function postProcess() {
+  console.log("buildingmat:" + building_mats);
+  console.log("videomat:" + video_mats);
+  console.log("imgmat:" + img_mats);
+
   loading.remove();
   const manager = new THREE.LoadingManager();
   manager.onLoad = function () {
@@ -223,53 +316,22 @@ function postProcess() {
           //wireframe: true,
         });
 
-        if (child.groupName == "steel") {
-          if (index % 1 == 0) {
-            mat = img_mats[String(5)];
-          }
-          // else {
-          //   mat = img_mats[String(10)];
-          // }
-        }
-        if (child.groupName == "concrete") {
-          mat = img_mats[String(1)];
-        }
-        if (child.groupName == "roof") {
-          mat = img_mats[String(2)];
-        }
-        if (child.groupName == "tesuri") {
-          mat = img_mats[String(3)];
-        }
-        if (child.groupName == "Aluminum") {
-          mat = img_mats[String(3)];
-        }
-
-        if (child.groupName == "panel") {
-          mat = img_mats[String(4)];
-        }
-
-        // if (child.groupName == "bluesheet") {
-        //   mat = new THREE.MeshLambertMaterial({
-        //     color: 0xffffff,
-        //     // emissive: child.material.color,
-        //     // transparent: true,
-        //     // opacity: 0.7,
-        //     depthTest: false,
-        //     //wireframe: true,
-        //   });
-        // }
-        if (child.groupName == "scan_object") {
-          let mat_ref_index = (index - 1) % 3;
-          mat = video_mats[mat_ref_index];
+        let class_name_ = child.groupName;
+        if (class_name_.includes("scan_object")) {
+          mat = video_mats[i % 3].mat;
           mat.uniforms.uNormalFactor.value = 1.0;
           mat.uniforms.uColorFactor.value = 0.0;
+          child.material = mat;
           objects.push(child);
+        } else {
+          console.log(class_name_);
+          let mat_object = building_mats.find(
+            ({ class_name }) => class_name === class_name_
+          );
+          //console.log(mat_object);
+          mat = mat_object.mat;
+          child.material = mat;
         }
-
-        // mat.depthTest = true;
-        child.castShadow = true;
-        child.receiveShadow = true;
-        child.material = mat;
       }
 
       index += 1;
@@ -286,11 +348,9 @@ function postProcess() {
         // child.add( helper );
       }
     });
+
     scene.add(fbx_models[i]);
   }
-
-  onStart();
-  tick();
 }
 
 let prev_point;
