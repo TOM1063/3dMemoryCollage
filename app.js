@@ -5,7 +5,7 @@ import * as THREE from "https://unpkg.com/three@0.130.1/build/three.module.js";
 import { OrbitControls } from "https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js";
 // import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js';
 
-import { generateMediaMat } from "./mediaMat.js";
+import { generateMediaMat, generateMediaMat_building } from "./mediaMat.js";
 import { update_freeCamera } from "./freeCam.js";
 
 //-------------------------------------//import//---------------------------------------//
@@ -205,7 +205,7 @@ function init() {
             width: texture.image.width,
             height: texture.image.height,
           };
-          mat = generateMediaMat(texture, textureSize, size);
+          mat = generateMediaMat_building(texture, textureSize, size);
           let new_building_tex_data = { class_name: class_name, mat: mat };
           building_mats.push(new_building_tex_data);
           resolve();
