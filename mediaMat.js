@@ -95,7 +95,7 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
               `,
   });
 
-  let debug_mat = new THREE.MeshLambertMaterial();
+  //let debug_mat = new THREE.MeshLambertMaterial();
   return glsl_mat;
 };
 
@@ -184,6 +184,6 @@ export const generateMediaMat_building = (texture, textureSize, windowSize) => {
               `,
   });
 
-  let debug_mat = new THREE.MeshLambertMaterial();
+  //let debug_mat = new THREE.MeshLambertMaterial();
   return glsl_mat;
 };
