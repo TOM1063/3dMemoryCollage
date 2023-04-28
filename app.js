@@ -1,3 +1,5 @@
+//-------------------------------------//import//---------------------------------------//
+
 import { FBXLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders/FBXLoader.js";
 import * as THREE from "https://unpkg.com/three@0.130.1/build/three.module.js";
 import { OrbitControls } from "https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js";
@@ -5,6 +7,13 @@ import { OrbitControls } from "https://unpkg.com/three@0.126.1/examples/jsm/cont
 
 import { generateMediaMat } from "./mediaMat.js";
 import { update_freeCamera } from "./freeCam.js";
+
+//-------------------------------------//import//---------------------------------------//
+
+//-------------------------------------//setting//---------------------------------------//
+let TEX_PATH = "shader/imgs/";
+let MEMORY_PATH = "shader/imgs/memories";
+let MODEL_PATH = "";
 
 var SETTING_DB = {
   buildings: [
@@ -52,9 +61,9 @@ var SETTING_DB = {
     },
   ],
 };
+//-------------------------------------//setting//---------------------------------------//
 
-let TEX_PATH = "shader/imgs/";
-let MODEL_PATH = "";
+//-------------------------------------//def//---------------------------------------//
 
 //get models url
 let model_urls = []; //"./structure.fbx", "./pointclouds.fbx"
@@ -98,7 +107,7 @@ const title = document.getElementById("title");
 const canvas = document.getElementById("myCanvas");
 const startButton = document.getElementById("startButton");
 
-const size = {
+let size = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
@@ -148,6 +157,9 @@ const imageLoader = new THREE.TextureLoader();
 const raycaster = new THREE.Raycaster();
 const point = new THREE.Vector2(0, 0);
 
+//-------------------------------------//def//---------------------------------------//
+
+//-------------------------------------//init//---------------------------------------//
 function init() {
   console.log("start");
   console.log("window_size:", size);
@@ -242,8 +254,8 @@ function init() {
     video_mats.push(new_video_tex_data);
 
     let mats = [];
-    for (let i = 0; i < memory.texture.length; i++) {
-      let tex_file = memory.texture[i];
+    for (let j = 0; j < memory.texture.length; j++) {
+      let tex_file = memory.texture[j];
       let url = TEX_PATH + tex_file;
       const promise = new Promise((resolve, reject) => {
         imageLoader.load(
@@ -256,9 +268,7 @@ function init() {
               height: texture.image.height,
             };
             let mat = generateMediaMat(texture, textureSize, size);
-            mats[i] = mat;
-            let new_img_tex_data = { class_name: class_name, mats: mats };
-            img_mats.push(new_img_tex_data);
+            mats.push(mat);
             resolve();
           },
           undefined,
@@ -267,6 +277,8 @@ function init() {
       });
       dataLoadingPromises.push(promise);
     }
+    let new_img_tex_data = { class_name: class_name, mats: mats };
+    img_mats.push(new_img_tex_data);
   }
 
   //laod fbx model
@@ -308,6 +320,10 @@ function init() {
   });
 }
 
+//-------------------------------------//init//---------------------------------------//
+
+//-------------------------------------//init//---------------------------------------//
+
 function postProcess() {
   console.log("buildingmat:" + building_mats);
   console.log("videomat:" + video_mats);
@@ -343,7 +359,10 @@ function postProcess() {
           mat.uniforms.uNormalFactor.value = 1.0;
           mat.uniforms.uColorFactor.value = 0.0;
           mat.side = THREE.DoubleSide;
+          mat.index = index;
+          index += 1;
           child.material = mat;
+          child.memory_name = class_name_;
           objects.push(child);
         } else {
           console.log(class_name_);
@@ -355,8 +374,6 @@ function postProcess() {
           child.material = mat;
         }
       }
-
-      index += 1;
     });
 
     fbx_models[i].traverse((child) => {
@@ -374,6 +391,10 @@ function postProcess() {
     scene.add(fbx_models[i]);
   }
 }
+
+//-------------------------------------//init//---------------------------------------//
+
+//-------------------------------------//def//---------------------------------------//
 
 let prev_point;
 let tracks_archive = [];
@@ -408,6 +429,10 @@ indic_enter_point.position.set(10000, 10000, 10000);
 scene.add(indic_enter_point);
 
 let title_typed = true;
+
+//-------------------------------------//def//---------------------------------------//
+
+//-------------------------------------//update//---------------------------------------//
 
 function tick() {
   frame += 1;
@@ -535,7 +560,8 @@ function tick() {
       }
 
       //show page
-      let page_name = "page" + String(intersects[0].object.material.index);
+      let page_name = String(intersects[0].object.memory_name);
+      console.log(page_name);
       let page = document.getElementById(page_name);
       page.classList.remove("scroll-out");
       page.classList.add("scroll-in");
@@ -635,6 +661,9 @@ function onStart() {
     .easing(TWEEN.Easing.Exponential.In)
     .start();
 }
+//-------------------------------------//update//---------------------------------------//
+
+//-------------------------------------//event//---------------------------------------//
 
 startButton.addEventListener("click", init);
 
@@ -657,6 +686,13 @@ $(window).on("load", function () {
   TypingInit(); //初期設定
   TypingAnime(); /* アニメーション用の関数を呼ぶ*/
 }); // ここまで画面が読み込まれたらすぐに動かしたい場合の記述
+
+$(window).on("resize", function () {
+  size = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
+});
 
 window.addEventListener("mousemove", function (e) {
   if (activate_mouse) {
@@ -713,3 +749,5 @@ window.addEventListener(
 function tweenComplete() {
   activate_mouse = true;
 }
+
+//-------------------------------------//event//---------------------------------------//
