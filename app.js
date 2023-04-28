@@ -9,7 +9,7 @@ import { update_freeCamera } from "./freeCam.js";
 var SETTING_DB = {
   buildings: [
     { name: "structure", model: "structure_mesh.fbx" },
-    { name: "pointcloud", model: "pointcloud_mesh_covered.fbx" },
+    { name: "pointcloud", model: "memory.fbx" },
   ],
   building_tex: [
     { class_name: "steel", texture: "test0.jpg" },
@@ -21,17 +21,32 @@ var SETTING_DB = {
   ],
   memories_tex: [
     {
-      class_name: "memory_0",
+      class_name: "欠けた壁",
       video: "testvideo0.mp4",
       texture: [],
     },
     {
-      class_name: "memory_1",
+      class_name: "敷かれたブルーシートとブロック",
       video: "testvideo1.mp4",
       texture: [],
     },
     {
-      class_name: "memory_2",
+      class_name: "穴の開いた壁_南",
+      video: "testvideo2.mp4",
+      texture: [],
+    },
+    {
+      class_name: "穴の開いた壁_西",
+      video: "testvideo0.mp4",
+      texture: [],
+    },
+    {
+      class_name: "歪んだ庇",
+      video: "testvideo1.mp4",
+      texture: [],
+    },
+    {
+      class_name: "くぼんだ地面",
       video: "testvideo2.mp4",
       texture: [],
     },
@@ -317,10 +332,12 @@ function postProcess() {
         });
 
         let class_name_ = child.groupName;
-        if (class_name_.includes("scan_object")) {
+        if (class_name_.includes("memory_")) {
+          console.log(class_name_.split("memory_")[1]);
           mat = video_mats[i % 3].mat;
           mat.uniforms.uNormalFactor.value = 1.0;
           mat.uniforms.uColorFactor.value = 0.0;
+          mat.side = THREE.DoubleSide;
           child.material = mat;
           objects.push(child);
         } else {
