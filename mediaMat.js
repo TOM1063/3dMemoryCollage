@@ -1,6 +1,12 @@
 import * as THREE from "https://unpkg.com/three@0.130.1/build/three.module.js";
 
-export const generateMediaMat = (texture, textureSize, windowSize) => {
+export const generateMediaMat = (
+  video_texture,
+  image_texture,
+  textureSize,
+  windowSize,
+  pix_ratio
+) => {
   console.log(windowSize);
   console.log(textureSize);
   let glsl_mat = new THREE.ShaderMaterial({
@@ -9,13 +15,15 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
     },
     transparent: true,
     uniforms: {
-      uTex: { type: "t", value: texture }, // テスクチャを uTex として渡す
+      uVidTex: { type: "t", value: video_texture },
+      uImgTex: { type: "t", value: image_texture }, // テスクチャを uTex として渡す
       uWindowSizeX: { value: windowSize.width },
       uWindowSizeY: { value: windowSize.height },
       uTexSizeX: { value: textureSize.width },
       uTexSizeY: { value: textureSize.height },
       uColorFactor: { value: 1.0 },
       uNormalFactor: { value: 0.0 },
+      uPixRatio: { value: pix_ratio },
     },
     vertexShader: `
               varying float vDotProduct;
@@ -36,13 +44,15 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
               #include <lights_pars_begin>
   
               // precision mediump float;
-              uniform sampler2D uTex;
+              uniform sampler2D uVidTex[1];
+              uniform sampler2D uImgTex[4];
               uniform float uWindowSizeX;
               uniform float uWindowSizeY;
               uniform float uTexSizeX;
               uniform float uTexSizeY;
               uniform float uColorFactor;
               uniform float uNormalFactor;
+              uniform float uPixRatio;
   
               void main() {
                 // float opacity = (1.0 - abs(vDotProduct))*4.0;
@@ -75,10 +85,13 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
                   
                 }
 
-                vec2 screenUVs = vec2((gl_FragCoord.x*0.5 / uWindowSizeX) * repeatx + offsetx, (gl_FragCoord.y*0.5/uWindowSizeY))*repeaty + offsety;
+                vec2 screenUVs = vec2(((gl_FragCoord.x/uPixRatio) / uWindowSizeX) * repeatx + offsetx, ((gl_FragCoord.y/uPixRatio)/uWindowSizeY))*repeaty + offsety;
                 //screenUVs = vec2(clamp(screenUVs.x, 0.0, 1.0),clamp(screenUVs.y, 0.0, 1.0));
                 
-                vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
+                vec3 texture_color = texture2D( uVidTex[0],  screenUVs).rgb;
+                vec3 img_texture_color = texture2D( uImgTex[0],  screenUVs).rgb;
+                //texture_color += img_texture_color;
+
                 vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
                 //vec3 color = vec3(1.0, texture_color.r, texture_color.r);
                 if(uNormalFactor == 1.0) {
@@ -99,7 +112,12 @@ export const generateMediaMat = (texture, textureSize, windowSize) => {
   return glsl_mat;
 };
 
-export const generateMediaMat_building = (texture, textureSize, windowSize) => {
+export const generateMediaMat_building = (
+  texture,
+  textureSize,
+  windowSize,
+  pix_ratio
+) => {
   console.log(windowSize);
   console.log(textureSize);
   let glsl_mat = new THREE.ShaderMaterial({
@@ -113,6 +131,7 @@ export const generateMediaMat_building = (texture, textureSize, windowSize) => {
       uWindowSizeY: { value: windowSize.height },
       uTexSizeX: { value: textureSize.width },
       uTexSizeY: { value: textureSize.height },
+      uPixRatio: { value: pix_ratio },
     },
     vertexShader: `
               varying float vDotProduct;
@@ -138,6 +157,7 @@ export const generateMediaMat_building = (texture, textureSize, windowSize) => {
               uniform float uWindowSizeY;
               uniform float uTexSizeX;
               uniform float uTexSizeY;
+              uniform float uPixRatio;
   
               void main() {
                 // float opacity = (1.0 - abs(vDotProduct))*4.0;
@@ -168,7 +188,7 @@ export const generateMediaMat_building = (texture, textureSize, windowSize) => {
                   
                 }
 
-                vec2 screenUVs = vec2((gl_FragCoord.x*0.5 / uWindowSizeX) * repeatx + offsetx, (gl_FragCoord.y*0.5/uWindowSizeY))*repeaty + offsety;
+                vec2 screenUVs = vec2(((gl_FragCoord.x/uPixRatio) / uWindowSizeX) * repeatx + offsetx, ((gl_FragCoord.y/uPixRatio)/uWindowSizeY))*repeaty + offsety;
                 //screenUVs = vec2(clamp(screenUVs.x, 0.0, 1.0),clamp(screenUVs.y, 0.0, 1.0));
                 
                 vec3 texture_color = texture2D( uTex,  screenUVs).rgb;

@@ -15,6 +15,8 @@ let TEX_PATH = "shader/imgs/";
 let MEMORY_PATH = "shader/imgs/memories";
 let MODEL_PATH = "fbx/";
 
+let CONTROLL_SPEED = 1.2;
+
 var SETTING_DB = setting_db;
 //-------------------------------------//setting//---------------------------------------//
 
@@ -29,15 +31,13 @@ for (let i = 0; i < SETTING_DB.buildings.length; i++) {
 console.log(model_urls);
 
 let videoTextures = [];
+let memoryTextures = [];
 
-let video_mats = [];
-let img_mats = [];
 let building_mats = [];
+let memory_mats = [];
 
 let fbx_model = [];
 let fbx_models = [];
-
-let dataLoadingPromises = [];
 
 let objects = [];
 let focused_object;
@@ -67,6 +67,9 @@ let size = {
   height: window.innerHeight,
 };
 
+let pix_ratio = window.devicePixelRatio;
+console.log("pix ratio : ", pix_ratio);
+
 let mouse = new THREE.Vector2(0, -0.1);
 let mouse_prev = new THREE.Vector2(0, 0);
 
@@ -85,10 +88,21 @@ let key_state = {
   moveLeft: false,
   moveRight: false,
 };
-
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
+camera.far = 200;
 const controls = new OrbitControls(camera, canvas);
+
+let material = new THREE.MeshBasicMaterial({
+  color: 0xf0f0f0,
+  side: THREE.DoubleSide,
+});
+const background = new THREE.Mesh(
+  new THREE.SphereGeometry(1000.0, 8, 8),
+  material
+);
+background.renderOrder = -1;
+scene.add(background);
 //const camera = new THREE.OrthographicCamera(size.width/-2,size.width/2,size.height/2,size.height/-2,1,10);
 
 if (
@@ -105,12 +119,187 @@ console.log("IS_SMARTPHONE : " + String(IS_SMARTPHONE));
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
 });
+
+// renderer.setPixelRatio(window.devicePixelRatio);
+
 const target = new THREE.Vector3(-2, 0, 0);
 
 const imageLoader = new THREE.TextureLoader();
 
 const raycaster = new THREE.Raycaster();
 const point = new THREE.Vector2(0, 0);
+
+//-------------------------------------//def//---------------------------------------//
+
+//-------------------------------------//def//---------------------------------------//
+
+//make building mats
+let building_tex_load_promises = [];
+let building_tex_num = SETTING_DB.building_tex.length;
+
+function building_tex_load() {
+  console.log("building_tex_load_promise start");
+  for (let i = 0; i < building_tex_num; i++) {
+    const promise = new Promise((resolve) => {
+      let building_tex = SETTING_DB.building_tex[i];
+      let class_name = building_tex.class_name;
+      let url = TEX_PATH + building_tex.texture;
+      let mat;
+      imageLoader.load(url, function (image) {
+        let building_image = image;
+        building_image.needsUpdate = true;
+        let textureSize = {
+          width: building_image.image.width,
+          height: building_image.image.height,
+        };
+        console.log("building_image:" + building_image);
+        mat = generateMediaMat_building(
+          building_image,
+          textureSize,
+          size,
+          pix_ratio
+        );
+        let new_building_tex_data = { class_name: class_name, mat: mat };
+        building_mats.push(new_building_tex_data);
+        resolve();
+      });
+    });
+    building_tex_load_promises.push(promise);
+  }
+}
+
+const memories_num = SETTING_DB.memories_tex.length;
+let video_tex_load_promises = [];
+
+function video_tex_load() {
+  console.log("video_tex_load_promise start");
+  for (let i = 0; i < memories_num; i++) {
+    const promise = new Promise((resolve) => {
+      console.log("loading memory video");
+      let memory = SETTING_DB.memories_tex[i];
+      let vide_file_name = memory.video;
+      let class_name = memory.class_name;
+      const video = document.getElementById(vide_file_name);
+      video.src = TEX_PATH + vide_file_name;
+      video.muted = true;
+      video.play();
+      const videoTexture = new THREE.VideoTexture(video);
+      videoTexture.needsUpdate = true;
+      let new_data = { class_name: class_name, texture: videoTexture };
+      videoTextures.push(new_data);
+      resolve();
+    });
+    video_tex_load_promises.push(promise);
+  }
+}
+
+let memory_tex_load_promises = [];
+function memory_tex_load() {
+  for (let i = 0; i < memories_num; i++) {
+    let memory = SETTING_DB.memories_tex[i];
+    let class_name = memory.class_name;
+    for (let j = 0; j < memory.texture.length; j++) {
+      const promise = new Promise((resolve) => {
+        let tex_file = memory.texture[j];
+        let url = TEX_PATH + tex_file;
+        imageLoader.load(url, function (image) {
+          console.log("loading_memory texture");
+          let texture = image;
+          texture.needsUpdate = true;
+          if (j == 0) {
+            let new_data = { class_name: class_name, textures: [texture] };
+            memoryTextures.push(new_data);
+          } else if (j > 0) {
+            memoryTextures[i].textures.push(texture);
+          }
+          resolve();
+        });
+      });
+      memory_tex_load_promises.push(promise);
+    }
+  }
+}
+
+//laod fbx model
+let fbx_load_promises = [];
+function fbx_load() {
+  const fbxLoader = new FBXLoader();
+  for (let i = 0; i < model_urls.length; i++) {
+    const promise = new Promise((resolve) => {
+      fbxLoader.load(model_urls[i], (object) => {
+        object.scale.set(0.01, 0.01, 0.01);
+        object.traverse((child) => {
+          if (child.isGroup) {
+            let group_name = child.name;
+            if (child.children) {
+              let sub_models = child.children;
+              sub_models.forEach((elem) => {
+                if (elem.isMesh) {
+                  elem.groupName = group_name;
+                }
+              });
+            }
+          }
+        });
+        fbx_models.push(object);
+        resolve();
+      });
+    });
+    fbx_load_promises.push(promise);
+  }
+}
+
+function make_memory_mat() {
+  // make memory mats
+  for (let i = 0; i < memories_num; i++) {
+    let video_texs = [];
+    let img_texs = [];
+    let memory = SETTING_DB.memories_tex[i];
+    console.log("memory_class_name : " + memory.class_name);
+    let class_name_ = memory.class_name;
+    let video_tex_object = videoTextures.find(
+      ({ class_name }) => class_name === class_name_
+    );
+    let video_texture = video_tex_object["texture"];
+    video_texture.magFilter = THREE.LinearFilter;
+    video_texture.minFilter = THREE.LinearFilter;
+    let video_textureSize = {
+      width: video_texture.image.width,
+      height: video_texture.image.height,
+    };
+    video_texs.push(video_texture);
+
+    if (memory.texture.length > 0) {
+      let memory_texs_object = memoryTextures.find(
+        ({ class_name }) => class_name === class_name_
+      );
+      for (let j = 0; j < memory_texs_object.textures.length; j++) {
+        let img_textures = memory_texs_object["textures"];
+        img_texs.push(img_textures[j]);
+      }
+    }
+
+    let textureSize = {
+      width: video_texture.image.width,
+      height: video_texture.image.height,
+    };
+    let video_tex_len = parseFloat(video_texs.length);
+    console.log("video_tex_len : ", video_tex_len);
+    console.log("video_texs : ", video_texs);
+    let img_tex_len = parseFloat(img_texs.length);
+    console.log("img_tex_len : ", img_tex_len);
+    console.log("img_texs : ", img_texs);
+    let mat = generateMediaMat(
+      video_texs,
+      img_texs,
+      video_textureSize,
+      size,
+      pix_ratio
+    );
+    let new_memory_tex_data = { class_name: class_name_, mat: mat };
+    memory_mats.push(new_memory_tex_data);
+  }
+}
 
 //-------------------------------------//def//---------------------------------------//
 
@@ -140,193 +329,81 @@ function init() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
   //const bg_color = new THREE.Color(0, 0, 255);
-  const bg_color = new THREE.Color(0.9, 0.9, 0.9);
-  renderer.setClearColor(bg_color, 1);
 
-  //make building mats
-  let building_tex_num = SETTING_DB.building_tex.length;
-  for (let i = 0; i < building_tex_num; i++) {
-    let building_tex = SETTING_DB.building_tex[i];
-    let class_name = building_tex.class_name;
-    let url = TEX_PATH + building_tex.texture;
-    let mat;
-    const building_tex_load_promise = new Promise((resolve, reject) => {
-      imageLoader.load(
-        url,
-        function (image) {
-          let texture = image;
-          texture.needsUpdate = true;
-          let textureSize = {
-            width: texture.image.width,
-            height: texture.image.height,
-          };
-          mat = generateMediaMat_building(texture, textureSize, size);
-          let new_building_tex_data = { class_name: class_name, mat: mat };
-          building_mats.push(new_building_tex_data);
-          resolve();
-        },
-        undefined,
-        reject
-      );
-    });
-    dataLoadingPromises.push(building_tex_load_promise);
-  }
+  // const bg_color = new THREE.Color(0.9, 0.9, 0.9);
+  // renderer.setClearColor(bg_color, 1);
 
-  // preload video textures
-  const memories_num = SETTING_DB.memories_tex.length;
-  for (let i = 0; i < memories_num; i++) {
-    let memory = SETTING_DB.memories_tex[i];
-    let vide_file_name = memory.video;
-    let class_name = memory.class_name;
-    const promise = new Promise((resolve, reject) => {
-      const video = document.getElementById(vide_file_name);
-      video.src = TEX_PATH + vide_file_name;
-      video.muted = true;
-      video.play();
-      const videoTexture = new THREE.VideoTexture(video);
-      videoTexture.needsUpdate = true;
-      let new_data = { class_name: class_name, texture: videoTexture };
-      videoTextures.push(new_data);
-      resolve();
-    });
-    dataLoadingPromises.push(promise);
-  }
-
-  // make memory mats
-  for (let i = 0; i < memories_num; i++) {
-    let memory = SETTING_DB.memories_tex[i];
-    let video_texture = videoTextures[i].texture;
-    let class_name = memory.class_name;
-    video_texture.magFilter = THREE.LinearFilter;
-    video_texture.minFilter = THREE.LinearFilter;
-    let video_textureSize = {
-      width: video_texture.image.width,
-      height: video_texture.image.height,
-    };
-    let mat = generateMediaMat(video_texture, video_textureSize, size);
-    mat.index = i;
-    let new_video_tex_data = { class_name: class_name, mat: mat };
-    video_mats.push(new_video_tex_data);
-
-    let mats = [];
-    for (let j = 0; j < memory.texture.length; j++) {
-      let tex_file = memory.texture[j];
-      let url = TEX_PATH + tex_file;
-      const promise = new Promise((resolve, reject) => {
-        imageLoader.load(
-          url,
-          function (image) {
-            let texture = image;
-            texture.needsUpdate = true;
-            let textureSize = {
-              width: texture.image.width,
-              height: texture.image.height,
-            };
-            let mat = generateMediaMat(texture, textureSize, size);
-            mats.push(mat);
-            resolve();
-          },
-          undefined,
-          reject
-        );
+  building_tex_load();
+  Promise.all(building_tex_load_promises).then(() => {
+    console.log("building tex loaded");
+    video_tex_load();
+    Promise.all(video_tex_load_promises).then(() => {
+      console.log("video tex loaded");
+      memory_tex_load();
+      Promise.all(memory_tex_load_promises).then(() => {
+        console.log("memory tex loaded");
+        fbx_load();
+        Promise.all(fbx_load_promises).then(() => {
+          console.log("fbx loaded");
+          make_memory_mat();
+          postProcess();
+        });
       });
-      dataLoadingPromises.push(promise);
-    }
-    let new_img_tex_data = { class_name: class_name, mats: mats };
-    img_mats.push(new_img_tex_data);
-  }
-
-  //laod fbx model
-  const fbxLoader = new FBXLoader();
-  for (let i = 0; i < model_urls.length; i++) {
-    const fbx_load_pormise = new Promise((resolve, reject) => {
-      fbxLoader.load(
-        model_urls[i],
-        (object) => {
-          object.scale.set(0.01, 0.01, 0.01);
-          object.traverse((child) => {
-            if (child.isGroup) {
-              let group_name = child.name;
-              if (child.children) {
-                let sub_models = child.children;
-                sub_models.forEach((elem) => {
-                  if (elem.isMesh) {
-                    elem.groupName = group_name;
-                  }
-                });
-              }
-            }
-          });
-          fbx_models.push(object);
-          resolve();
-        },
-        undefined,
-        reject
-      );
     });
-    dataLoadingPromises.push(fbx_load_pormise);
-  }
-
-  //promises done
-  Promise.all(dataLoadingPromises).then((results) => {
-    postProcess();
-    onStart();
-    tick();
   });
 }
-
 //-------------------------------------//init//---------------------------------------//
 
 //-------------------------------------//init//---------------------------------------//
 
 function postProcess() {
+  console.log("---------post process-------");
+  console.log("video_textures_num:" + videoTextures.length);
+  console.log("memory_textures_num:" + memoryTextures.length);
   console.log("buildingmat:" + building_mats);
-  console.log("videomat:" + video_mats);
-  console.log("imgmat:" + img_mats);
+  console.log("imemorymat:" + memory_mats);
 
   loading.remove();
-  const manager = new THREE.LoadingManager();
-  manager.onLoad = function () {
-    console.log("all items loaded");
-  };
 
   let index = 0;
+
   for (let i = 0; i < fbx_models.length; i++) {
     fbx_models[i].traverse((child) => {
       if (child.isMesh) {
-        let mat = new THREE.MeshLambertMaterial({
-          color: 0xffffff,
-          emissive: 0xffffff,
-          transparent: true,
-          opacity: 0.2,
-          //depthTest: false,
-          //wireframe: true,
-        });
+        // let mat = new THREE.MeshLambertMaterial({
+        //   color: 0xffffff,
+        //   emissive: 0xffffff,
+        //   transparent: true,
+        //   opacity: 0.2,
+        //   //depthTest: false,
+        //   //wireframe: true,
+        // });
 
         let class_name_ = child.groupName;
         if (class_name_.includes("memory_")) {
+          //memory part
           class_name_ = class_name_.split("memory_")[1];
           console.log(class_name_);
-          let mat_object = video_mats.find(
+          let mat_object = memory_mats.find(
             ({ class_name }) => class_name === class_name_
           );
-          mat = mat_object.mat;
-          mat.uniforms.uNormalFactor.value = 1.0;
-          mat.uniforms.uColorFactor.value = 0.0;
-          mat.side = THREE.DoubleSide;
-          mat.index = index;
+          let memory_mat = mat_object.mat;
+          memory_mat.uniforms.uNormalFactor.value = 1.0;
+          memory_mat.uniforms.uColorFactor.value = 0.0;
+          memory_mat.side = THREE.DoubleSide;
+          memory_mat.index = index;
           index += 1;
-          child.material = mat;
+          child.material = memory_mat;
           child.memory_name = class_name_;
           objects.push(child);
         } else {
+          //fundational building part
           console.log(class_name_);
           let mat_object = building_mats.find(
             ({ class_name }) => class_name === class_name_
           );
-          //console.log(mat_object);
-          mat = mat_object.mat;
-          child.material = mat;
+          let building_mat = mat_object.mat;
+          child.material = building_mat;
         }
       }
     });
@@ -345,6 +422,9 @@ function postProcess() {
 
     scene.add(fbx_models[i]);
   }
+
+  console.log("post proccess done");
+  onStart();
 }
 
 //-------------------------------------//init//---------------------------------------//
@@ -364,10 +444,6 @@ let track_material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 track_material.transparent = true;
 track_material.blending = THREE.AdditiveBlending;
 
-// track_material.blending =THREE.CustomBlending;
-// track_material.blendEquation = THREE.ReverseSubtractEquation;
-// track_material.blendSrc = THREE.OneMinusSrcSaturationFactor; //default
-// track_material.blendDst = THREE.OneMinusSrcSaturationFactor; //default
 track_material.opacity = 0.2;
 
 let indic_mat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
@@ -390,6 +466,7 @@ let title_typed = true;
 //-------------------------------------//update//---------------------------------------//
 
 function tick() {
+  console.log("tick!");
   frame += 1;
 
   if (true) {
@@ -420,13 +497,6 @@ function tick() {
         points.push(prev_point);
         points.push(camera_pos);
         //console.log(points);
-
-        //let line_mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        // const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        // const line = new THREE.Line(geometry, line_mat);
-        // line.name = frame;
-        // scene.add(line);
-        // tracks.push(line);
 
         prev_point = camera_pos;
       } else {
@@ -530,19 +600,23 @@ function tick() {
       );
 
       //change background texture
-      let new_texture = intersects[0].object.material.uniforms.uTex.value;
-      let textureAspect = new_texture.image.width / new_texture.image.height;
-      let aspect = size.width / size.height;
+      //let new_texture = intersects[0].object.material.uniforms.uTex.value;
+      let new_material = intersects[0].object.material.clone();
+      new_material.depthTest = false;
+      // let textureAspect = new_texture.image.width / new_texture.image.height;
+      // let aspect = size.width / size.height;
 
-      if (aspect < textureAspect) {
-        new_texture.repeat.x = aspect / textureAspect;
-        new_texture.offset.x = (1 - new_texture.repeat.x) / 2;
-      } else {
-        new_texture.repeat.y = textureAspect / aspect;
-        new_texture.offset.y = (1 - new_texture.repeat.y) / 2;
-      }
+      // if (aspect < textureAspect) {
+      //   new_texture.repeat.x = aspect / textureAspect;
+      //   new_texture.offset.x = (1 - new_texture.repeat.x) / 2;
+      // } else {
+      //   new_texture.repeat.y = textureAspect / aspect;
+      //   new_texture.offset.y = (1 - new_texture.repeat.y) / 2;
+      // }
 
-      scene.background = new_texture;
+      //scene.background = new_texture;
+      background.material = new_material;
+
       let random_theta = Math.random() * 360;
       console.log(random_theta);
       if (IS_SMARTPHONE) {
@@ -615,6 +689,9 @@ function onStart() {
     .to({ x: 3.14 - 3.14 / 5, y: 3.14 / 4, z: 0 }, 6000)
     .easing(TWEEN.Easing.Exponential.In)
     .start();
+
+  console.log("on start done");
+  tick();
 }
 //-------------------------------------//update//---------------------------------------//
 
@@ -628,12 +705,12 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(size.width, size.height);
 
-  fbx_model.traverse((child) => {
-    if (child.isMesh) {
-      child.material.uWindowSizeX = size.width;
-      child.material.uWindowSizeY = size.height;
-    }
-  });
+  // fbx_model.traverse((child) => {
+  //   if (child.isMesh) {
+  //     child.material.uWindowSizeX = size.width;
+  //     child.material.uWindowSizeY = size.height;
+  //   }
+  // });
 });
 
 // 画面が読み込まれたらすぐに動かしたい場合の記述

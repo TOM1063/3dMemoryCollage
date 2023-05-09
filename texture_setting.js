@@ -17,32 +17,32 @@ export const setting_db = {
     {
       class_name: "欠けた壁",
       video: "testvideo0.mp4",
-      texture: ["IMG_20230428_0003.jpg"],
+      texture: ["IMG_20230428_0003.jpg", "IMG_20230428_0013.jpg"],
     },
     {
       class_name: "敷かれたブルーシートとブロック",
       video: "testvideo1.mp4",
-      texture: [],
+      texture: ["IMG_20230428_0003.jpg", "IMG_20230428_0013.jpg"],
     },
     {
       class_name: "穴の開いた壁_南",
       video: "testvideo2.mp4",
-      texture: [],
+      texture: ["IMG_20230428_0003.jpg", "IMG_20230428_0013.jpg"],
     },
     {
       class_name: "穴の開いた壁_西",
-      video: "testvideo0.mp4",
-      texture: [],
+      video: "testvideo3.mp4",
+      texture: ["IMG_20230428_0003.jpg", "IMG_20230428_0013.jpg"],
     },
     {
       class_name: "歪んだ庇",
-      video: "testvideo1.mp4",
-      texture: [],
+      video: "testvideo4.mp4",
+      texture: ["IMG_20230428_0003.jpg", "IMG_20230428_0013.jpg"],
     },
     {
       class_name: "くぼんだ地面",
-      video: "testvideo2.mp4",
-      texture: [],
+      video: "testvideo5.mp4",
+      texture: ["IMG_20230428_0003.jpg", "IMG_20230428_0013.jpg"],
     },
   ],
 };
