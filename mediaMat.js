@@ -269,13 +269,13 @@ export const generateMediaMat = (
                    texture_color = texture2D( uVidTex[0],  screenUVs*2.0).rgb;
                 }
                 if (screenUVs.x < 1.0 && screenUVs.x > 0.5 && screenUVs.y < 0.5 && screenUVs.y > 0.0) {
-                  texture_color = texture2D( uImgTex[1],  screenUVs*2.0 - vec2(0.5,0.0)).rgb;
+                  texture_color = texture2D( uImgTex[1],  screenUVs*2.0 - vec2(1.0,0.0)).rgb;
                 }
                 if (screenUVs.x < 0.5 && screenUVs.x > 0.0 && screenUVs.y < 1.0 && screenUVs.y > 0.5) {
                   texture_color = texture2D( uImgTex[1],  screenUVs*2.0 - vec2(0.0,1.0)).rgb;
                 }
                 if (screenUVs.x < 1.0 && screenUVs.x > 0.5 && screenUVs.y < 1.5 && screenUVs.y > 0.5) {
-                  texture_color = texture2D( uImgTex[0],  screenUVs*2.0 - vec2(0.5,1.0)).rgb;
+                  texture_color = texture2D( uImgTex[0],  screenUVs*2.0 - vec2(1.0,1.0)).rgb;
                 }
                 
                 //vec3 texture_color = texture2D( uVidTex[0],  screenUVs).rgb;
