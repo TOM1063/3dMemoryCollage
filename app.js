@@ -157,7 +157,8 @@ function building_tex_load() {
           building_image,
           textureSize,
           size,
-          pix_ratio
+          pix_ratio,
+          frame
         );
         let new_building_tex_data = { class_name: class_name, mat: mat };
         building_mats.push(new_building_tex_data);
@@ -294,7 +295,8 @@ function make_memory_mat() {
       img_texs,
       video_textureSize,
       size,
-      pix_ratio
+      pix_ratio,
+      frame
     );
     let new_memory_tex_data = { class_name: class_name_, mat: mat };
     memory_mats.push(new_memory_tex_data);
@@ -468,6 +470,18 @@ let title_typed = true;
 function tick() {
   console.log("tick!");
   frame += 1;
+
+  for (let i = 0; i < fbx_models.length; i++) {
+    fbx_models[i].traverse((child) => {
+      if (child.isMesh) {
+        child.material.uniforms.uTime.value = frame / 100;
+      }
+    });
+  }
+
+  if (background.material.isShaderMaterial) {
+    background.material.uniforms.uTime.value = frame / 100;
+  }
 
   if (true) {
     if (frame % 12 == 0) {
