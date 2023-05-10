@@ -265,76 +265,28 @@ export const generateMediaMat = (
                 vec2 screenUVs = vec2(((gl_FragCoord.x/uPixRatio) / uWindowSizeX) * repeatx + offsetx, ((gl_FragCoord.y/uPixRatio)/uWindowSizeY)*repeaty + offsety);
                 //screenUVs = vec2(clamp(screenUVs.x, 0.0, 1.0),clamp(screenUVs.y, 0.0, 1.0));
 
-                float time_factor = 0.2;
-                float a1 =  fract(uTime*time_factor);
-                float b1 = fract(uTime*time_factor + 0.5);
 
-                float a2 =  1.0 - fract(uTime);
-                float b2 = 1.0 - fract(uTime + 0.5);
-
+                float time_factor = 0.02;
 
                 vec2 refUV;
-
                 refUV.t = fract(screenUVs.t*2.0);
-                refUV.s = fract(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * uTime*0.05);
-
-                texture_color = texture2D(uImgTex[0],refUV).rgb;
-
-
-                // //下の段
-                // if(screenUVs.y < 0.5) {
-                //   if(b1 > a1) {
-                //     if(a1 < 0.0) {
-                //       texture_color = texture2D(uImgTex[0], screenUVs*2.0 - vec2(a1 - 0.5, 0.0)*2.0).rgb;
-                //     }
-                //     else if(0.0 < a1 && b1 < 1.0) {
-                //       if(screenUVs.x < a1 && screenUVs.x > 0.0) {
-                //         texture_color = texture2D(uImgTex[1], screenUVs*2.0 - vec2(a1 - 0.5, 0.0)*2.0).rgb;
-                //       }
-                //       else if(screenUVs.x > a1 && screenUVs.x < b1) {
-                //         texture_color = texture2D(uImgTex[0], screenUVs*2.0 - vec2(a1, 0.0)*2.0).rgb;
-                //       }
-                //       else if(screenUVs.x > b1 && screenUVs.x < 1.0) {
-                //         texture_color = texture2D(uImgTex[1], screenUVs*2.0 - vec2(b1, 0.0)*2.0).rgb;
-                //       }
-                //     }
-                //     if(1.0 < b1) {
-
-                //     }
-                //   }
-
-                //   if(a1 > b1) {
-                //     if(screenUVs.x < b1 && screenUVs.x > 0.0) {
-                //       texture_color = texture2D(uImgTex[0], screenUVs*2.0 - vec2(b1 - 0.5, 0.0)*2.0).rgb;
-                //     }
-                //     else if(screenUVs.x > b1 && screenUVs.x < b1) {
-                //       texture_color = texture2D(uImgTex[1], screenUVs*2.0 - vec2(b1, 0.0)*2.0).rgb;
-                //     }
-                //     else if(screenUVs.x > a1 && screenUVs.x < 1.0) {
-                //       texture_color = texture2D(uImgTex[0], screenUVs*2.0 - vec2(a1, 0.0)*2.0).rgb;
-                //     }
-                //   }
-                // }
-
-                // //上の段
-                // if(screenUVs.y > 0.5) {
-                //   if(b2 > a2) {
-                //   }
-                //   if(a2 > b2) {
-
-                //   }
-
-                //   if (screenUVs.x < 0.5 && screenUVs.x > 0.0 && screenUVs.y < 1.0 && screenUVs.y > 0.5) {
-                //     texture_color = texture2D( uImgTex[1],  screenUVs*2.0 - vec2(0.0,1.0)).rgb;
-                //   }
-                //   if (screenUVs.x < 1.0 && screenUVs.x > 0.5 && screenUVs.y < 1.5 && screenUVs.y > 0.5) {
-                //     texture_color = texture2D( uImgTex[0],  screenUVs*2.0 - vec2(1.0,1.0)).rgb;
-                //   }
-                // }
+                refUV.s = fract(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * uTime*time_factor);
+                int index = int(mod(floor(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * uTime*time_factor),2.0) + floor(screenUVs.t*2.0)*2.0);
 
 
-
-
+                if(index == 0) {
+                  texture_color = texture2D(uVidTex[0],refUV).rgb;
+                }
+                else if(index == 1) {
+                  texture_color = texture2D(uImgTex[0],refUV).rgb;
+                }
+                else if(index == 2) {
+                  texture_color = texture2D(uImgTex[1],refUV).rgb;
+                }
+                else if(index == 3) {
+                  texture_color = texture2D(uImgTex[1],refUV).rgb;
+                }
+                
 
                 // if (screenUVs.x < 0.5 && screenUVs.x > 0.0 && screenUVs.y < 0.5 && screenUVs.y > 0.0) {
                 //    texture_color = texture2D( uVidTex[0],  screenUVs*2.0).rgb;
