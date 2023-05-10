@@ -11,8 +11,8 @@ import { setting_db } from "./texture_setting.js";
 //-------------------------------------//import//---------------------------------------//
 
 //-------------------------------------//setting//---------------------------------------//
-let TEX_PATH = "shader/imgs/";
-let MEMORY_PATH = "shader/imgs/memories";
+let TEX_PATH = "shader/imgs/building/";
+let MEMORY_PATH = "shader/imgs/memories/";
 let MODEL_PATH = "fbx/";
 
 let CONTROLL_SPEED = 1.2;
@@ -184,8 +184,8 @@ function video_tex_load() {
       let vide_file_name = memory.video;
       let class_name = memory.class_name;
       const video = document.getElementById(vide_file_name);
-      video.src = TEX_PATH + vide_file_name;
-      video.play();
+      console.log("video:", vide_file_name);
+      video.src = MEMORY_PATH + vide_file_name;
 
       const videoTexture = new THREE.VideoTexture(video);
       videoTexture.needsUpdate = true;
@@ -215,22 +215,20 @@ function memory_tex_load() {
   for (let i = 0; i < memories_num; i++) {
     let memory = SETTING_DB.memories_tex[i];
     let class_name = memory.class_name;
+    let textures = [];
     for (let j = 0; j < memory.texture.length; j++) {
       const promise = new Promise((resolve) => {
         let tex_file = memory.texture[j];
-        let url = TEX_PATH + tex_file;
+        let url = MEMORY_PATH + tex_file;
         imageLoader.load(url, function (image) {
-          console.log("loading_memory texture");
+          console.log("loading_memory texture", url);
           let texture = image;
           texture.needsUpdate = true;
-          if (j == 0) {
-            let new_data = { class_name: class_name, textures: [texture] };
-            memoryTextures.push(new_data);
-          } else if (j > 0) {
-            memoryTextures[i].textures.push(texture);
-          }
+          textures.push(texture);
           resolve();
         });
+        let new_data = { class_name: class_name, textures: textures };
+        memoryTextures.push(new_data);
       });
       memory_tex_load_promises.push(promise);
     }

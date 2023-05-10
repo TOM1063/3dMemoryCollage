@@ -257,21 +257,19 @@ export const generateMediaMat = (
                   repeaty *= 2.0/3.0;
                 }
 
-                // offsety += noise(vec2(1.0,uTime));
-                // offsetx += noise(vec2(10.0,uTime));
-
                 vec3 texture_color;
 
                 vec2 screenUVs = vec2(((gl_FragCoord.x/uPixRatio) / uWindowSizeX) * repeatx + offsetx, ((gl_FragCoord.y/uPixRatio)/uWindowSizeY)*repeaty + offsety);
-                //screenUVs = vec2(clamp(screenUVs.x, 0.0, 1.0),clamp(screenUVs.y, 0.0, 1.0));
 
 
-                float time_factor = 0.02;
+                float time_factor = 0.015;
+
+                float dist_factor = (1.0 - cos(uColorFactor*3.14/2.0))*0.2;
 
                 vec2 refUV;
                 refUV.t = fract(screenUVs.t*2.0);
-                refUV.s = fract(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * uTime*time_factor);
-                int index = int(mod(floor(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * uTime*time_factor),2.0) + floor(screenUVs.t*2.0)*2.0);
+                refUV.s = fract(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor));
+                int index = int(mod(floor(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor)),2.0) + floor(screenUVs.t*2.0)*2.0);
 
 
                 if(index == 0) {
@@ -284,26 +282,13 @@ export const generateMediaMat = (
                   texture_color = texture2D(uImgTex[1],refUV).rgb;
                 }
                 else if(index == 3) {
-                  texture_color = texture2D(uImgTex[1],refUV).rgb;
+                  texture_color = texture2D(uImgTex[2],refUV).rgb;
                 }
-                
 
-                // if (screenUVs.x < 0.5 && screenUVs.x > 0.0 && screenUVs.y < 0.5 && screenUVs.y > 0.0) {
-                //    texture_color = texture2D( uVidTex[0],  screenUVs*2.0).rgb;
+                // if((texture_color.r < 0.01 && texture_color.g < 0.01) && texture_color.b < 0.01) {
+                //   texture_color = vec3(1.0);
                 // }
-                // if (screenUVs.x < 1.0 && screenUVs.x > 0.5 && screenUVs.y < 0.5 && screenUVs.y > 0.0) {
-                //   texture_color = texture2D( uImgTex[1],  screenUVs*2.0 - vec2(1.0,0.0)).rgb;
-                // }
-                // if (screenUVs.x < 0.5 && screenUVs.x > 0.0 && screenUVs.y < 1.0 && screenUVs.y > 0.5) {
-                //   texture_color = texture2D( uImgTex[1],  screenUVs*2.0 - vec2(0.0,1.0)).rgb;
-                // }
-                // if (screenUVs.x < 1.0 && screenUVs.x > 0.5 && screenUVs.y < 1.5 && screenUVs.y > 0.5) {
-                //   texture_color = texture2D( uImgTex[0],  screenUVs*2.0 - vec2(1.0,1.0)).rgb;
-                // }
-                
-                //vec3 texture_color = texture2D( uVidTex[0],  screenUVs).rgb;
-                //vec3 img_texture_color = texture2D( uImgTex[0],  screenUVs).rgb;
-                //texture_color += img_texture_color;
+
 
                 vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
                 //vec3 color = vec3(1.0, texture_color.r, texture_color.r);
@@ -311,10 +296,6 @@ export const generateMediaMat = (
                   color = vec3(texture_color.b * (1.0 - uColorFactor)  + texture_color.r* uColorFactor, texture_color.b * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, 1.0 * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
                   //color = vec3( 1.0 * (1.0 - uColorFactor)  + texture_color.r* uColorFactor ,(1.0 - texture_color.r) * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, (1.0 - texture_color.r) * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
                 }
-
-                // if (screenUVs.x < 0.0 || screenUVs.x > 1.0 || screenUVs.y < 0.0 || screenUVs.y > 1.0) {
-                //   color = vec3(1.0, 1.0, 1.0);
-                // }
 
                 gl_FragColor = vec4(color.rgb,opacity);
               }
