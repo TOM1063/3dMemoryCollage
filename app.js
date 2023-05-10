@@ -30,6 +30,7 @@ for (let i = 0; i < SETTING_DB.buildings.length; i++) {
 }
 console.log(model_urls);
 
+let sounds = [];
 let videoTextures = [];
 let memoryTextures = [];
 
@@ -44,6 +45,7 @@ let focused_object;
 
 let ishit = false;
 let selected_page;
+let prev_page_name;
 
 let frame = 0;
 
@@ -92,6 +94,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
 camera.far = 200;
 const controls = new OrbitControls(camera, canvas);
+let listener;
 
 let material = new THREE.MeshBasicMaterial({
   color: 0xf0f0f0,
@@ -182,12 +185,25 @@ function video_tex_load() {
       let class_name = memory.class_name;
       const video = document.getElementById(vide_file_name);
       video.src = TEX_PATH + vide_file_name;
-      video.muted = true;
       video.play();
+
       const videoTexture = new THREE.VideoTexture(video);
       videoTexture.needsUpdate = true;
       let new_data = { class_name: class_name, texture: videoTexture };
       videoTextures.push(new_data);
+
+      const video_sound = new THREE.Audio(listener);
+      // video.muted = false;
+      video_sound.autoplay = true;
+      video_sound.setMediaElementSource(video);
+      video_sound.setLoop(true);
+      video_sound.hasPlaybackControl = true;
+      video_sound.play();
+      video_sound.setVolume(0.0);
+      console.log("make sound of : ", class_name);
+      let sound_data = { class_name: class_name, sound: video_sound };
+      sounds.push(sound_data);
+
       resolve();
     });
     video_tex_load_promises.push(promise);
@@ -315,6 +331,8 @@ function init() {
   camera.far = 20000;
   camera.aspect = size.width / size.height;
   camera.position.set(100, 0, 100);
+  listener = new THREE.AudioListener();
+  camera.add(listener);
 
   if (IS_SMARTPHONE) {
     controls.enableDamping = true;
@@ -612,6 +630,22 @@ function tick() {
         camera_util.pos.y,
         camera_util.pos.z
       );
+
+      let sound_object = sounds.find(
+        ({ class_name }) => class_name === page_name
+      );
+
+      sound_object.sound.setVolume(1.0);
+      console.log("sound object : ", sound_object);
+
+      if (prev_page_name) {
+        let prev_sound_object = sounds.find(
+          ({ class_name }) => class_name === prev_page_name
+        );
+        prev_sound_object.sound.setVolume(0.0);
+      }
+
+      prev_page_name = page_name;
 
       //change background texture
       //let new_texture = intersects[0].object.material.uniforms.uTex.value;
