@@ -622,6 +622,21 @@ function tick() {
       page.classList.add("scroll-in");
       page.setAttribute("style", "visibility:visible");
 
+      // // 球体のワールド座標を取得する
+      // console.log(intersects[0].object);
+      // let worldPosition = intersects[0].object.mesh.getWorldPosition(
+      //   new THREE.Vector3()
+      // );
+      // // スクリーン座標を取得する
+      // let projection = worldPosition.project(camera);
+      // let sx = (width / 2) * (+projection.x + 1.0);
+      // let sy = (height / 2) * (-projection.y + 1.0);
+
+      // // SVGでラインを描画
+      // const line = document.getElementById("svgLine");
+      // line.setAttribute("x2", sx);
+      // line.setAttribute("y2", sy);
+
       // indicate enter point
       indic_enter_point.position.set(
         camera_util.pos.x,
