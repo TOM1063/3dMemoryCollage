@@ -186,6 +186,7 @@ function video_tex_load() {
       const video = document.getElementById(vide_file_name);
       console.log("video:", vide_file_name);
       video.src = MEMORY_PATH + vide_file_name;
+      video.play();
 
       const videoTexture = new THREE.VideoTexture(video);
       videoTexture.needsUpdate = true;
