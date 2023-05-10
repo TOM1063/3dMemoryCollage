@@ -56,7 +56,7 @@ export const update_freeCamera = (target_camera, util, mouse, key_state) => {
     right_vel.y * Number(key_state.moveLeft);
   //let vel2 = (right_vel * Number(moveRight)).sub(right_vel * Number(moveLeft));
   //let vel = vel1.add(vel2) * speed;
-  const motion_factor = 0.4;
+  const motion_factor = 0.8;
   let speed = motion_factor;
 
   util.pos.x += vel_x * speed;

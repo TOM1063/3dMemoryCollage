@@ -470,7 +470,8 @@ indic_mat.opacity = 0.2;
 let indic_point_mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 indic_point_mat.transparent = true;
 indic_point_mat.blending = THREE.AdditiveBlending;
-indic_point_mat.opacity = 1;
+indic_point_mat.opacity = 0.6;
+//indic_point_mat.depthTest = false;
 
 let box = new THREE.SphereGeometry(3, 8, 8);
 indic_enter_point = new THREE.Mesh(box, indic_point_mat);
@@ -487,6 +488,17 @@ function tick() {
   console.log("tick!");
   frame += 1;
 
+  // if (prev_page_name) {
+  //   let prev_page = document.getElementById(prev_page_name);
+  //   let enter_position = indic_enter_point.position.clone();
+  //   let projection = enter_position.project(camera);
+  //   let sx = (size.width / 2) * (+projection.x + 1.0);
+  //   let sy = (size.height / 2) * (-projection.y + 1.0);
+
+  //   prev_page.style.transform = `translate(${sx}px, ${sy * 0.0}px)`;
+  //   prev_page.style.height = `${sy - 20}px`;
+  // }
+
   for (let i = 0; i < fbx_models.length; i++) {
     fbx_models[i].traverse((child) => {
       if (child.isMesh) {
@@ -500,7 +512,7 @@ function tick() {
   }
 
   if (true) {
-    if (frame % 12 == 0) {
+    if (frame % 6 == 0) {
       let camera_pos = new THREE.Vector3(
         camera.position.x,
         camera.position.y,
@@ -627,21 +639,24 @@ function tick() {
       // let worldPosition = intersects[0].object.mesh.getWorldPosition(
       //   new THREE.Vector3()
       // );
-      // // スクリーン座標を取得する
-      // let projection = worldPosition.project(camera);
-      // let sx = (width / 2) * (+projection.x + 1.0);
-      // let sy = (height / 2) * (-projection.y + 1.0);
+      // スクリーン座標を取得する
+      // let enter_position = indic_enter_point.position;
+      // let projection = enter_position.project(camera);
+      // let sx = (size.width / 2) * (+projection.x + 1.0);
+      // let sy = (size.height / 2) * (-projection.y + 1.0);
 
-      // // SVGでラインを描画
+      // prev_page.style.transform = `translate(${sx}px, ${sy}px)`;
+
+      // SVGでラインを描画
       // const line = document.getElementById("svgLine");
       // line.setAttribute("x2", sx);
       // line.setAttribute("y2", sy);
 
       // indicate enter point
       indic_enter_point.position.set(
-        camera_util.pos.x,
-        camera_util.pos.y,
-        camera_util.pos.z
+        camera.position.x,
+        camera.position.y,
+        camera.position.z
       );
 
       let sound_object = sounds.find(
