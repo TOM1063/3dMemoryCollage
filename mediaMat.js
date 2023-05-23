@@ -268,8 +268,8 @@ export const generateMediaMat = (
 
                 vec2 refUV;
                 refUV.t = fract(screenUVs.t*2.0);
-                refUV.s = fract(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor));
-                int index = int(mod(floor(screenUVs.s* 2.0 + (1.0 - 2.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor)),2.0) + floor(screenUVs.t*2.0)*2.0);
+                refUV.s = fract(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor));
+                int index = int(mod(floor(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor)),2.0) + floor(screenUVs.t*2.0)*2.0);
 
 
                 if(index == 0) {
