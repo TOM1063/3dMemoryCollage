@@ -267,28 +267,53 @@ export const generateMediaMat = (
                 float dist_factor = (1.0 - cos(uColorFactor*3.14/2.0))*0.2;
 
                 vec2 refUV;
-                refUV.t = fract(screenUVs.t*2.0);
-                refUV.s = fract(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor));
-                int index = int(mod(floor(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor)),2.0) + floor(screenUVs.t*2.0)*2.0);
+
+                int index;
+
+                float vert_slesh = 0.7;
+                if(screenUVs.t < vert_slesh) {
+                  refUV.t = screenUVs.t/vert_slesh;
+                  refUV.s = fract((screenUVs.s - 0.5 + 0.7*0.5*(textureAspect/windowAspect))* (1.0/(0.7*(windowAspect/textureAspect))));
+                  if(screenUVs.s < 0.5 - 0.7*0.5*(textureAspect/windowAspect)){
+                    refUV.s = 0.0;
+                  }
+                  else if (screenUVs.s > 0.5 + 0.7*0.5*(textureAspect/windowAspect)){
+                    refUV.s = 1.0;
+                  }
+                  //index = int(floor(screenUVs.s* (1.0/(0.7*(textureAspect/windowAspect)))));
+                }
+                else {
+                  refUV.t = (screenUVs.t - vert_slesh) / (1.0 - vert_slesh);
+                  refUV.s = fract(screenUVs.s* 3.0 + uTime*time_factor + dist_factor);
+                  index = 1 + int(floor(screenUVs.s* 3.0 + uTime*time_factor + dist_factor));
+                }
+
+
+
+                // refUV.t = fract(screenUVs.t*2.0);
+                // refUV.s = fract(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor));
+                //int index = int(mod(floor(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor)),2.0) + floor(screenUVs.t*2.0)*2.0);
 
 
                 if(index == 0) {
                   texture_color = texture2D(uVidTex[0],refUV).rgb;
                 }
                 else if(index == 1) {
-                  texture_color = texture2D(uImgTex[0],refUV).rgb;
+                  texture_color = vec3(1.0,1.0,1.0);
                 }
                 else if(index == 2) {
-                  texture_color = texture2D(uImgTex[1],refUV).rgb;
+                  texture_color = texture2D(uImgTex[0],refUV).rgb;
                 }
                 else if(index == 3) {
+                  texture_color = texture2D(uImgTex[1],refUV).rgb;
+                }
+                else if(index == 4) {
                   texture_color = texture2D(uImgTex[2],refUV).rgb;
                 }
 
                 // if((texture_color.r < 0.01 && texture_color.g < 0.01) && texture_color.b < 0.01) {
                 //   texture_color = vec3(1.0);
                 // }
-
 
                 vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
                 //vec3 color = vec3(1.0, texture_color.r, texture_color.r);
