@@ -51,9 +51,9 @@ main {
     font-size: 1.3rem;
     background: rgba(0, 0, 255, 0);
     border: 0;
-    border: 1px solid rgb(0,0, 255);
+    border: 1px solid rgb(193, 36, 36);
     border-radius: 2px;
-    color:  rgb(0,0,255);
+    color:  rgb(193, 36, 36);
     padding: 20px 45px;
     text-transform: uppercase;
     cursor: pointer;
@@ -99,7 +99,7 @@ input {
     height:100vh;
     
 }
-
+w
 .hidden_page_extend{
     height:200vh;
 }
@@ -109,10 +109,11 @@ input {
 
 .hidden_contents {
     z-index:100;
-    color:rgba(255, 0, 43, 0.731);
+    color:rgba(193, 36, 36, 0.728);
     width:70%;
     margin-top:20vw;
-    /* background: rgba(2550,255,255,0.2); */
+    letter-spacing: 0.2rem;
+    /* background: rgba(255,255,255,0.2); */
     border: 0;
     /* border: 1px solid rgb(0, 0, 255); */
     padding-left:10px;
@@ -120,6 +121,11 @@ input {
     /* font-family: "senobi-gothic", sans-serif;
     font-weight: 400;
     font-style: normal; */
+}
+
+.hidden_contents h2 {
+    text-align: center;
+    font-size:2rem;
 }
 
 .hiddenButton {
@@ -196,7 +202,7 @@ body {
 textarea {
     display: block;
     margin:10px auto;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgb(70, 70, 70);
     /* order:none; */
     resize: none;
     color:aliceblue;
@@ -204,7 +210,7 @@ textarea {
 }
 
 header {
-    background-color: rgb(53, 53, 53);
+    background-color: rgb(70, 70, 70);
     height:4rem;
 }
 
@@ -212,7 +218,9 @@ header {
     pointer-events: none;
 }
 
-.title {
+
+/* タイトルを中心に */
+/* .title {
     pointer-events: none;
     z-index: 50;
     position:fixed;
@@ -224,15 +232,30 @@ header {
 	justify-content: center;
 	flex-direction: column;
 
+} */
+
+.title {
+    pointer-events: none;
+    z-index: 50;
+    position:fixed;
+    width:100vw;
+    height:100vh;
+    display:flex;
+    align-items:start;
+}
+
+#title_box {
+    margin:30px;
 }
 .title h1 {
     z-index: 50;
     padding-top:6px;
     /* color: rgba(0, 0, 255, 0.766); */
-    color: rgb(0, 0, 0);
+    color: rgb(193, 36, 36);
     margin: 0;
-    margin-top:100px;
-    font-size: 2rem;
+    /* margin-top:100px; */
+    font-size: 3rem;
+    letter-spacing: 0.2rem;
 
     /* font-family: video, serif; */
     /* font-style: normal;
@@ -252,9 +275,9 @@ header {
 .title h2 {
     z-index: 50;
     padding-top:0;
-    color: rgb(0, 0, 0);
+    color: rgb(193, 36, 36);
     margin: 0;
-    height:60%;
+    /* height:60%; */
     font-size: 0.9rem;
     /* font-family: video, serif;
     font-style: normal;
@@ -270,7 +293,7 @@ header {
 }
 
 #main_title {
-    color: rgb(0,0,255);
+    color: rgb(193, 36, 36);
     font-size: 2rem;
     letter-spacing: 0;
     
@@ -299,9 +322,9 @@ header {
     font-size: 1.3rem;
     background: rgba(0, 0, 255, 0);
     border: 0;
-    border: 1px solid rgb(0,0, 255);
+    border: 1px solid rgb(193, 36, 36);
     border-radius: 2px;
-    color:  rgb(0,0,255);
+    color:  rgb(193, 36, 36);
     padding: 10px 25px;
 }
 

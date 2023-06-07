@@ -729,8 +729,9 @@ function tick() {
       }
 
       ishit = true;
-      TypingInit();
       title_typed = false;
+
+      TypingAnime(); /* アニメーション用の関数を呼ぶ*/
     } else {
       ishit = false;
     }

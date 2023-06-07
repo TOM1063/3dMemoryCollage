@@ -263,88 +263,98 @@ export const generateMediaMat = (
 
 
                 float time_factor = 0.015;
+
                 float dist_factor = (1.0 - cos(uColorFactor*3.14/2.0))*0.2;
+
+                vec2 refUV;
 
                 int index;
 
-                float mobile_factor = floor(windowAspect);
+
+                if(0.7*windowSize.y * textureAspect < windowSize.x) {
+                  float vert_slesh = 0.7;
+                  if(screenUVs.t < vert_slesh) {
+                    refUV.t = screenUVs.t/vert_slesh;
+                    refUV.s = fract((screenUVs.s - 0.5 + 0.7*0.5*(textureAspect/windowAspect))* (1.0/(0.7*(windowAspect/textureAspect))));
+                    if(screenUVs.s < 0.5 - 0.7*0.5*(textureAspect/windowAspect)){
+                      refUV.s = 0.0;
+                    }
+                    else if (screenUVs.s > 0.5 + 0.7*0.5*(textureAspect/windowAspect)){
+                      refUV.s = 1.0;
+                    }
+                    //index = int(floor(screenUVs.s* (1.0/(0.7*(textureAspect/windowAspect)))));
+                  }
+                  else {
+                    refUV.t = (screenUVs.t - vert_slesh) / (1.0 - vert_slesh);
+                    refUV.s = fract(screenUVs.s* 3.0 + uTime*time_factor + dist_factor);
+                    index = 1 + int(floor(screenUVs.s* 3.0 + uTime*time_factor + dist_factor));
+                  }
+  
+  
+  
+                  // refUV.t = fract(screenUVs.t*2.0);
+                  // refUV.s = fract(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor));
+                  //int index = int(mod(floor(screenUVs.s* 2.0 + (0.0 - 1.0 * floor(screenUVs.t*2.0)) * (uTime*time_factor + dist_factor)),2.0) + floor(screenUVs.t*2.0)*2.0);
+
+                }
 
 
-                float thresh = 0.66 * mobile_factor + 0.5 * (1.0 - mobile_factor) ;
-                float v_section_factor = step(screenUVs.t,thresh);
+                else {
+                  float vert_slesh = 0.7;
+                  if(screenUVs.t < vert_slesh) {
+                    refUV.t = screenUVs.t/vert_slesh;
+                    refUV.s = (screenUVs.s + 0.5 - 0.7*0.5*(textureAspect/windowAspect))* (1.0/(0.7*(windowAspect/textureAspect)));
+                    if(screenUVs.s < 0.5 - 0.7*0.5*(textureAspect/windowAspect)){
+                      refUV.s = 0.0;
+                    }
+                    else if (screenUVs.s > 0.5 + 0.7*0.5*(textureAspect/windowAspect)){
+                      refUV.s = 1.0;
+                    }
+                    //index = int(floor(screenUVs.s* (1.0/(0.7*(textureAspect/windowAspect)))));
+                  }
+                  else {
+                    refUV.t = (screenUVs.t - vert_slesh) / (1.0 - vert_slesh);
+                    refUV.s = fract(screenUVs.s* 3.0 + uTime*time_factor + dist_factor);
+                    index = 1 + int(floor(screenUVs.s* 3.0 + uTime*time_factor + dist_factor));
+                  }
 
-                float mov_height = windowSize.y * thresh;
-                float mov_width = mov_height * textureAspect;
-                float margin_left = (windowSize.x - mov_width)/2.0;
-
-                vec3 bg_color = vec3(1.0);
-
-
-                //---------------mov-------------------
-                vec2 mov_section_uv;
-                mov_section_uv.s = clamp(screenUVs.s * (windowSize.x/mov_width) - margin_left/windowSize.x,0.0,1.0);
-                mov_section_uv.t = clamp(screenUVs.t * (1.0/thresh),0.0,1.0);
-                //vec3 mov_section = vec3(mov_section_uv.s,mov_section_uv.t,0.0);
-                vec3 mov_section_pc = texture2D(uVidTex[0],mov_section_uv.st).rgb;
-
-
-                vec2 mov_section_mobile_uv;
-                mov_section_mobile_uv.s = clamp(2.5 * (screenUVs.s) * (windowSize.x/mov_width) + margin_left/windowSize.x,0.0,1.0);
-                mov_section_mobile_uv.t = clamp(screenUVs.t * (1.0/thresh),0.0,1.0);
-
-                vec3 mov_section_mobile = texture2D(uVidTex[0],vec2(mov_section_mobile_uv.s,mov_section_mobile_uv.t)).rgb;
-
-                vec3 mov_section = mov_section_mobile*(1.0 - mobile_factor) + mov_section_pc*mobile_factor;
-
-                float mov_gradient = clamp(2.0 * sin(screenUVs.s*3.141592),0.0,1.0);
+                }
 
 
-
-
-
-
-
-
-                mov_section = vec3(mov_section.r + 0.2,mov_section.g + 0.2,1.0);
-
-                mov_section = mov_section*mov_gradient + bg_color*(1.0 - mov_gradient);
-
-
-                //---------------imgs-------------------
-                vec2 imgs_section_uv;
-
-                imgs_section_uv.t = clamp((screenUVs.t - thresh) *(1.0/(1.0 - thresh)),0.0,1.0);
-                imgs_section_uv.s = fract(screenUVs.s* 3.0 + uTime*time_factor + dist_factor);
-                //imgs_section_uv.s = clamp(imgs_section_uv.s*1.2,0.0,1.0);
-                index = int(floor(mod(screenUVs.s*3.0 + uTime*time_factor + dist_factor,3.0)));
-   
-                vec3 imgs_section;
 
                 if(index == 0) {
-                  imgs_section = texture2D(uImgTex[0],imgs_section_uv.st).rgb;
+                  texture_color = vec3(texture2D(uVidTex[0],refUV).r + 0.3,texture2D(uVidTex[0],refUV).g + 0.3,1.0);
                 }
                 else if(index == 1) {
-                  imgs_section = texture2D(uImgTex[1],imgs_section_uv.st).rgb;
+                  texture_color = vec3(1.0,1.0,1.0);
                 }
                 else if(index == 2) {
-                  imgs_section = texture2D(uImgTex[2],imgs_section_uv.st).rgb;
+                  texture_color = texture2D(uImgTex[0],refUV).rgb;
+                }
+                else if(index == 3) {
+                  texture_color = texture2D(uImgTex[1],refUV).rgb;
+                }
+                else if(index == 4) {
+                  texture_color = texture2D(uImgTex[2],refUV).rgb;
                 }
 
-                float gradient = 1.0 * sin(fract(screenUVs.s* 3.0 + uTime*time_factor + dist_factor)*3.14159265);
-                imgs_section = bg_color*(1.0 - gradient) + imgs_section*gradient;
+                // if((texture_color.r < 0.01 && texture_color.g < 0.01) && texture_color.b < 0.01) {
+                //   texture_color = vec3(1.0);
+                // }
 
-                //imgs_section = vec3(imgs_section.r + 0.2,imgs_section.g + 0.2,imgs_section.b + 0.2);
+                //vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
+                vec3 color = texture_color.rgb;
+                //vec3 color = vec3(1.0, texture_color.r, texture_color.r);
+                if(uNormalFactor == 1.0) {
+                  //color = vec3( 1.0 * (1.0 - uColorFactor)  + texture_color.r* uColorFactor, texture_color.r * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, texture_color.r * (1.2 - uColorFactor)  + 0.8*texture_color.b* uColorFactor);
+                  //color = vec3(texture_color.b * (1.0 - uColorFactor)  + texture_color.r* uColorFactor, texture_color.b * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, 1.0 * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
+                  color = vec3(texture_color.r + (0.5 - uColorFactor*0.5),texture_color.g + (0.5 - uColorFactor*0.5),texture_color.b +  (0.5  - uColorFactor*0.5));
+                  //color = vec3( 1.0 * (1.0 - uColorFactor)  + texture_color.r* uColorFactor ,(1.0 - texture_color.r) * (1.0 - uColorFactor)  + texture_color.g* uColorFactor, (1.0 - texture_color.r) * (1.0 - uColorFactor)  + texture_color.b* uColorFactor);
+                }
 
-
-
-                
-
-                //----------------color-----------------
-                texture_color = mov_section*v_section_factor + imgs_section*(1.0 - v_section_factor);
-
-                gl_FragColor = vec4(texture_color,opacity);
+                gl_FragColor = vec4(color.rgb,opacity);
               }
-                `,
+              `,
   });
 
   //let debug_mat = new THREE.MeshLambertMaterial();
@@ -401,8 +411,8 @@ export const generateMediaMat_building = (
               uniform float uPixRatio;
   
               void main() {
-                float opacity = 0.5 + (abs(vDotProduct))*0.7;
-                //float opacity = 3.0;
+                // float opacity = (1.0 - abs(vDotProduct))*4.0;
+                float opacity = 1.0;
 
                 vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
                 vec2 windowSize = vec2(uWindowSizeX, uWindowSizeY);
@@ -434,15 +444,13 @@ export const generateMediaMat_building = (
                 
                 vec3 texture_color = texture2D( uTex,  screenUVs).rgb;
                 //vec3 color = vec3(texture_color.b, texture_color.b, 1.0);
-                //vec3 color = vec3(0.9, 1.2 - texture_color.r*1.2, 1.2 - texture_color.r*1.2);
-                vec3 color = vec3(texture_color.r + 0.2,texture_color.g + 0.2,texture_color.b + 0.2);
+                vec3 color = vec3(0.9, texture_color.r, texture_color.r);
 
                 // if (screenUVs.x < 0.0 || screenUVs.x > 1.0 || screenUVs.y < 0.0 || screenUVs.y > 1.0) {
                 //   color = vec3(1.0, 1.0, 1.0, 1.0);
                 // }
 
-                float gradient = clamp(sin(screenUVs.s * 3.1415),0.0,1.0);
-                gl_FragColor = vec4(color.rgb,opacity*gradient);
+                gl_FragColor = vec4(color.rgb,opacity);
               }
               `,
   });

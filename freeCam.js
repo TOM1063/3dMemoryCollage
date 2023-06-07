@@ -21,10 +21,10 @@ export const update_freeCamera = (target_camera, util, mouse, key_state) => {
     }
   } else if (yaw < -yaw_thresh) {
     util.body_rot.x -= 0.01;
-    rotating_body_left = true;
+    //rotating_body_left = true;
   } else if (yaw > yaw_thresh) {
     util.body_rot.x += 0.01;
-    rotating_body_right = true;
+    //rotating_body_right = true;
   }
   util.rot.x = util.head_rot.x + util.body_rot.x;
   util.rot.y = pitch;
