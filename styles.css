@@ -42,8 +42,10 @@ main {
 	flex-direction: column;
 	background: rgba(205,205,205);
 
+    color:rgb(68, 68, 68);
+
     font-family: "senobi-gothic", sans-serif;
-    font-weight: 400;
+    font-weight: 200;
     font-style: normal;
 }
 
@@ -118,9 +120,9 @@ w
     /* border: 1px solid rgb(0, 0, 255); */
     padding-left:10px;
     padding-right:10px;
-    /* font-family: "senobi-gothic", sans-serif;
+    font-family: "senobi-gothic", sans-serif;
     font-weight: 400;
-    font-style: normal; */
+    font-style: normal;
 }
 
 .hidden_contents h2 {
@@ -202,7 +204,7 @@ body {
 textarea {
     display: block;
     margin:10px auto;
-    background-color: rgb(70, 70, 70);
+    background-color: rgb(101, 101, 101);
     /* order:none; */
     resize: none;
     color:aliceblue;
