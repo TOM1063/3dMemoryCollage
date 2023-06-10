@@ -1,2 +1,2 @@
 # 3dMemoryCollage
-This is experiment of how to visualize memories by extending architectural collage.
+This is an experiment of how to visualize memories via 3d web.
