@@ -31,7 +31,7 @@ export const setting_db = {
     },
     {
       class_name: "穴の開いた壁_西",
-      video: "4_1東隣地_1_resized.mp4",
+      video: "4_1東隣地_1_resized2.mp4",
       texture: ["4_1.jpg", "4_2.jpg", "4-1_2.jpg"],
     },
     {
