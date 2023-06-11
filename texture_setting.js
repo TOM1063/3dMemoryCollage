@@ -42,7 +42,7 @@ export const setting_db = {
     {
       class_name: "くぼんだ地面",
       video: "13_小さい橋_1_resized.mp4",
-      texture: ["12_1.jpg", "12_2.jpg", "12_3.jpg"],
+      texture: ["13_1.jpg", "13_2.jpg", "13_3.jpg"],
     },
     {
       class_name: "西側道路",
@@ -72,17 +72,17 @@ export const setting_db = {
     {
       class_name: "区画整理",
       video: "16_区画整理について_1_resized.mp4",
-      texture: ["9_1.jpg", "9_2.jpg", "9_1.jpg"],
+      texture: ["16_1.jpg", "16_2.jpg", "16_3.jpg"],
     },
     {
       class_name: "手入れ",
       video: "0_手入れすること_1_resized.mp4",
-      texture: ["9_1.jpg", "9_2.jpg", "9_1.jpg"],
+      texture: ["0_1.jpg", "0_2.jpg", "0_1.jpg"],
     },
     {
       class_name: "錆びた壁",
       video: "7_さびの跡_1_resized.mp4",
-      texture: ["9_1.jpg", "9_2.jpg", "9_1.jpg"],
+      texture: ["7_1.jpg", "7_2.jpg", "7_3.jpg"],
     },
     {
       class_name: "東隣の敷地",
