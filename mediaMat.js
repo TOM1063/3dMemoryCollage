@@ -267,8 +267,7 @@ export const generateMediaMat = (
 
                 int index;
 
-                float mobile_factor = floor(windowAspect);
-
+                float mobile_factor = floor(windowAspect); // 0.0 if mobile
 
                 float thresh = 0.66 * mobile_factor + 0.5 * (1.0 - mobile_factor) ;
                 float v_section_factor = step(screenUVs.t,thresh);
@@ -282,7 +281,7 @@ export const generateMediaMat = (
 
                 //---------------mov-------------------
                 vec2 mov_section_uv;
-                mov_section_uv.s = clamp(screenUVs.s * (windowSize.x/mov_width) - margin_left/windowSize.x,0.0,1.0);
+                mov_section_uv.s = clamp((screenUVs.s - margin_left/windowSize.x) * (windowSize.x/mov_width),0.0,1.0);
                 mov_section_uv.t = clamp(screenUVs.t * (1.0/thresh),0.0,1.0);
                 //vec3 mov_section = vec3(mov_section_uv.s,mov_section_uv.t,0.0);
                 vec3 mov_section_pc = texture2D(uVidTex[0],mov_section_uv.st).rgb;
@@ -305,7 +304,7 @@ export const generateMediaMat = (
 
 
 
-                mov_section = vec3(mov_section.r + 0.2,mov_section.g + 0.2,1.0);
+                mov_section = vec3(mov_section.r + 0.3,mov_section.g + 0.35,mov_section.b + 0.35);
 
                 mov_section = mov_section*mov_gradient + bg_color*(1.0 - mov_gradient);
 

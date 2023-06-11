@@ -247,7 +247,8 @@ header {
 }
 
 #title_box {
-    margin:30px;
+    margin-top:30px;
+    margin-left:120px;
 }
 .title h1 {
     z-index: 50;

@@ -802,6 +802,7 @@ $(window).on("resize", function () {
     width: window.innerWidth,
     height: window.innerHeight,
   };
+  console.log("resized");
 });
 
 window.addEventListener("mousemove", function (e) {
