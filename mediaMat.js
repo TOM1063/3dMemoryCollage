@@ -329,7 +329,8 @@ export const generateMediaMat = (
                   imgs_section = texture2D(uImgTex[2],imgs_section_uv.st).rgb;
                 }
 
-                float gradient = 1.0 * sin(fract(screenUVs.s* 3.0 + uTime*time_factor + dist_factor)*3.14159265);
+                //float gradient = 1.0 * sin(fract(screenUVs.s* 3.0 + uTime*time_factor + dist_factor)*3.14159265);
+                float gradient = 1.0;
                 imgs_section = bg_color*(1.0 - gradient) + imgs_section*gradient;
 
                 //imgs_section = vec3(imgs_section.r + 0.2,imgs_section.g + 0.2,imgs_section.b + 0.2);
