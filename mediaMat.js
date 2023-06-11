@@ -288,7 +288,7 @@ export const generateMediaMat = (
 
 
                 vec2 mov_section_mobile_uv;
-                mov_section_mobile_uv.s = clamp(2.5 * (screenUVs.s) * (windowSize.x/mov_width) + margin_left/windowSize.x,0.0,1.0);
+                mov_section_mobile_uv.s = clamp((screenUVs.s + margin_left/windowSize.x) * (windowSize.x/mov_width),0.0,1.0);
                 mov_section_mobile_uv.t = clamp(screenUVs.t * (1.0/thresh),0.0,1.0);
 
                 vec3 mov_section_mobile = texture2D(uVidTex[0],vec2(mov_section_mobile_uv.s,mov_section_mobile_uv.t)).rgb;
