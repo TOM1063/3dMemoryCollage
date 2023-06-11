@@ -2,8 +2,8 @@
 
 export const setting_db = {
   buildings: [
-    { name: "structure", model: "structure_mesh.fbx" },
-    { name: "pointcloud", model: "memory.fbx" },
+    { name: "structure", model: "building.fbx" },
+    { name: "pointcloud", model: "pointcloud_2.fbx" },
   ],
   building_tex: [
     { class_name: "steel", texture: "test0.jpg" },
@@ -42,7 +42,57 @@ export const setting_db = {
     {
       class_name: "くぼんだ地面",
       video: "13_小さい橋_1_resized.mp4",
-      texture: ["13_1.jpg", "13_3.jpg", "13_4.jpg"],
+      texture: ["12_1.jpg", "12_2.jpg", "12_3.jpg"],
+    },
+    {
+      class_name: "西側道路",
+      video: "12_道路の方が高いらしい_1_resized.mp4",
+      texture: ["13_1.jpg", "13_2.jpg", "13_3.jpg"],
+    },
+    {
+      class_name: "境界標",
+      video: "11_離れた位置に境界標_1_resized.mp4",
+      texture: ["11_1.jpg", "11_2.jpg", "11_3.jpg"],
+    },
+    {
+      class_name: "水道管",
+      video: "8_どこへ続く管_1_resized.mp4",
+      texture: ["8_1.jpg", "8_2.jpg", "8_3.jpg"],
+    },
+    {
+      class_name: "倉庫が一番古い",
+      video: "0_倉庫が一番古い_resized.mp4",
+      texture: ["0_1.jpg", "0_2.jpg", "0_2.jpg"],
+    },
+    {
+      class_name: "西側境界",
+      video: "9_塀がない_1_resized.mp4",
+      texture: ["9_1.jpg", "9_2.jpg", "9_1.jpg"],
+    },
+    {
+      class_name: "区画整理",
+      video: "16_区画整理について_1_resized.mp4",
+      texture: ["9_1.jpg", "9_2.jpg", "9_1.jpg"],
+    },
+    {
+      class_name: "手入れ",
+      video: "0_手入れすること_1_resized.mp4",
+      texture: ["9_1.jpg", "9_2.jpg", "9_1.jpg"],
+    },
+    {
+      class_name: "錆びた壁",
+      video: "7_さびの跡_1_resized.mp4",
+      texture: ["9_1.jpg", "9_2.jpg", "9_1.jpg"],
+    },
+    {
+      class_name: "東隣の敷地",
+      video: "4_1東隣地_1_resized3.mp4",
+      texture: ["4_1.jpg", "4_2.jpg", "4-1_4.jpg"],
+    },
+    {
+      class_name: "ガタガタの縁",
+      video: "14_ガタガタの縁_1_resized.mp4",
+      texture: ["14_1.jpg", "14_2.jpg", "14_1.jpg"],
     },
   ],
 };
