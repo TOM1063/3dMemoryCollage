@@ -21,7 +21,7 @@ export const setting_db = {
     },
     {
       class_name: "敷かれたブルーシートとブロック",
-      video: "15_ブルーシートとブロックと鉢_1_resized.mp4",
+      video: "15_ブルーシートとブロックと鉢_1_resized.mp4",
       texture: ["15_1.jpg", "15_2.jpg", "14_2.jpg"],
     },
     {
