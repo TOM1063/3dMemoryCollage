@@ -43,6 +43,7 @@ let fbx_models = [];
 let objects = [];
 let focused_object;
 
+let islockon = false;
 let ishit = false;
 let selected_page;
 let prev_page_name;
@@ -578,13 +579,14 @@ function tick() {
   //on lock on
   if (intersects[0]) {
     console.log("rock on!");
+    islockon = true;
     let dist = Math.abs(intersects[0].distance);
 
     let colorThresh;
     if (IS_SMARTPHONE) {
-      colorThresh = 100;
+      colorThresh = 40;
     } else {
-      colorThresh = 50;
+      colorThresh = 20;
     }
     focused_object = intersects[0].object;
 
@@ -596,6 +598,7 @@ function tick() {
       const bg_color = new THREE.Color(0.9, 0.9, 0.9);
       scene.background = NaN;
       renderer.setClearColor(bg_color, 1);
+      background.material = material;
 
       intersects[0].object.material.uniforms.uColorFactor.value =
         1.0 - colorFactor;
@@ -621,7 +624,40 @@ function tick() {
         TypingAnime(); /* アニメーション用の関数を呼ぶ*/
         title_typed = true;
       }
+
+      let page_name = String(intersects[0].object.memory_name);
+
+      if (page_name != prev_page_name) {
+        let sound_object = sounds.find(
+          ({ class_name }) => class_name === page_name
+        );
+
+        let prev_sound_object = sounds.find(
+          ({ class_name }) => class_name === prev_page_name
+        );
+
+        sound_object.sound.setVolume(0.5);
+        console.log("sound object : ", sound_object);
+
+        if (prev_sound_object) {
+          let prev_sound_object = sounds.find(
+            ({ class_name }) => class_name === prev_page_name
+          );
+          prev_sound_object.sound.setVolume(0.03);
+        }
+
+        prev_page_name = page_name;
+      }
     } else {
+      if (islockon == true) {
+        let page_name = String(intersects[0].object.memory_name);
+        s;
+        let sound_object = sounds.find(
+          ({ class_name }) => class_name === page_name
+        );
+        sound_object.sound.setVolume(0.03);
+        islockon = false;
+      }
       //intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
     }
 
@@ -646,6 +682,11 @@ function tick() {
       page.classList.remove("scroll-out");
       page.classList.add("scroll-in");
       page.setAttribute("style", "visibility:visible");
+
+      let sound_object = sounds.find(
+        ({ class_name }) => class_name === page_name
+      );
+      sound_object.sound.setVolume(1.0);
 
       // // 球体のワールド座標を取得する
       // console.log(intersects[0].object);
@@ -672,19 +713,19 @@ function tick() {
         camera.position.z
       );
 
-      let sound_object = sounds.find(
-        ({ class_name }) => class_name === page_name
-      );
+      // let sound_object = sounds.find(
+      //   ({ class_name }) => class_name === page_name
+      // );
 
-      sound_object.sound.setVolume(1.0);
-      console.log("sound object : ", sound_object);
+      // sound_object.sound.setVolume(1.0);
+      // console.log("sound object : ", sound_object);
 
-      if (prev_page_name) {
-        let prev_sound_object = sounds.find(
-          ({ class_name }) => class_name === prev_page_name
-        );
-        prev_sound_object.sound.setVolume(0.0);
-      }
+      // if (prev_page_name) {
+      //   let prev_sound_object = sounds.find(
+      //     ({ class_name }) => class_name === prev_page_name
+      //   );
+      //   prev_sound_object.sound.setVolume(0.0);
+      // }
 
       prev_page_name = page_name;
 
