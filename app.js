@@ -183,35 +183,42 @@ let video_tex_load_promises = [];
 function video_tex_load() {
   console.log("video_tex_load_promise start");
   for (let i = 0; i < memories_num; i++) {
-    const promise = new Promise((resolve) => {
-      console.log("loading memory video");
-      let memory = SETTING_DB.memories_tex[i];
-      let vide_file_name = memory.video;
-      let class_name = memory.class_name;
-      const video = document.getElementById(vide_file_name);
-      console.log("video:", vide_file_name);
-      video.src = MEMORY_PATH + vide_file_name;
-      video.play();
+    const promise = new Promise(
+      (resolve) => {
+        console.log("loading memory video");
+        let memory = SETTING_DB.memories_tex[i];
+        let vide_file_name = memory.video;
+        let class_name = memory.class_name;
+        console.log("videofilename:", vide_file_name);
+        const video = document.getElementById(vide_file_name);
+        console.log("video:", vide_file_name);
+        video.src = MEMORY_PATH + vide_file_name;
+        console.log("video setted");
+        video.play();
 
-      const videoTexture = new THREE.VideoTexture(video);
-      videoTexture.needsUpdate = true;
-      let new_data = { class_name: class_name, texture: videoTexture };
-      videoTextures.push(new_data);
+        const videoTexture = new THREE.VideoTexture(video);
+        videoTexture.needsUpdate = true;
+        let new_data = { class_name: class_name, texture: videoTexture };
+        videoTextures.push(new_data);
 
-      const video_sound = new THREE.Audio(listener);
-      // video.muted = false;
-      video_sound.autoplay = true;
-      video_sound.setMediaElementSource(video);
-      video_sound.setLoop(true);
-      video_sound.hasPlaybackControl = true;
-      video_sound.play();
-      video_sound.setVolume(0.0);
-      console.log("make sound of : ", class_name);
-      let sound_data = { class_name: class_name, sound: video_sound };
-      sounds.push(sound_data);
+        const video_sound = new THREE.Audio(listener);
+        // video.muted = false;
+        video_sound.autoplay = true;
+        video_sound.setMediaElementSource(video);
+        video_sound.setLoop(true);
+        video_sound.hasPlaybackControl = true;
+        video_sound.play();
+        video_sound.setVolume(0.0);
+        console.log("make sound of : ", class_name);
+        let sound_data = { class_name: class_name, sound: video_sound };
+        sounds.push(sound_data);
 
-      resolve();
-    });
+        resolve();
+      },
+      (error) => {
+        console.log(error); // Never executes because the Promise is resolved
+      }
+    );
     video_tex_load_promises.push(promise);
   }
 }
