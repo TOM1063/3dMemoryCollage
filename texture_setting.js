@@ -94,5 +94,10 @@ export const setting_db = {
       video: "14_ガタガタの縁_1_resized.mp4",
       texture: ["14_1.jpg", "14_2.jpg", "14_1.jpg"],
     },
+    {
+      class_name: "塀",
+      video: "10_切られたブロック塀_1_resized.mp4",
+      texture: ["10_1.jpg", "10_4.jpg", "10_5.jpg"],
+    },
   ],
 };
