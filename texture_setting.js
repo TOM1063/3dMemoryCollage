@@ -47,7 +47,7 @@ export const setting_db = {
     {
       class_name: "西側道路",
       video: "12_west_load.mp4",
-      texture: ["13_1.jpg", "13_2.jpg", "13_3.jpg"],
+      texture: ["12_1_2.jpg", "12_2_2.jpg", "12_3_2.jpg"],
     },
     {
       class_name: "境界標",
