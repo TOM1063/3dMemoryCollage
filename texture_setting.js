@@ -41,7 +41,7 @@ export const setting_db = {
     },
     {
       class_name: "くぼんだ地面",
-      video: "13_小さい橋_1_resized.mp4",
+      video: "13_小さい橋_1_resized2.mp4",
       texture: ["13_1.jpg", "13_2.jpg", "13_3.jpg"],
     },
     {

@@ -143,31 +143,36 @@ let building_tex_num = SETTING_DB.building_tex.length;
 function building_tex_load() {
   console.log("building_tex_load_promise start");
   for (let i = 0; i < building_tex_num; i++) {
-    const promise = new Promise((resolve) => {
-      let building_tex = SETTING_DB.building_tex[i];
-      let class_name = building_tex.class_name;
-      let url = TEX_PATH + building_tex.texture;
-      let mat;
-      imageLoader.load(url, function (image) {
-        let building_image = image;
-        building_image.needsUpdate = true;
-        let textureSize = {
-          width: building_image.image.width,
-          height: building_image.image.height,
-        };
-        console.log("building_image:" + building_image);
-        mat = generateMediaMat_building(
-          building_image,
-          textureSize,
-          size,
-          pix_ratio,
-          frame
-        );
-        let new_building_tex_data = { class_name: class_name, mat: mat };
-        building_mats.push(new_building_tex_data);
-        resolve();
-      });
-    });
+    const promise = new Promise(
+      (resolve) => {
+        let building_tex = SETTING_DB.building_tex[i];
+        let class_name = building_tex.class_name;
+        let url = TEX_PATH + building_tex.texture;
+        let mat;
+        imageLoader.load(url, function (image) {
+          let building_image = image;
+          building_image.needsUpdate = true;
+          let textureSize = {
+            width: building_image.image.width,
+            height: building_image.image.height,
+          };
+          console.log("building_image:" + building_image);
+          mat = generateMediaMat_building(
+            building_image,
+            textureSize,
+            size,
+            pix_ratio,
+            frame
+          );
+          let new_building_tex_data = { class_name: class_name, mat: mat };
+          building_mats.push(new_building_tex_data);
+          resolve();
+        });
+      },
+      (error) => {
+        console.log(error); // Never executes because the Promise is resolved
+      }
+    );
     building_tex_load_promises.push(promise);
   }
 }
