@@ -651,7 +651,6 @@ function tick() {
     } else {
       if (islockon == true) {
         let page_name = String(intersects[0].object.memory_name);
-        s;
         let sound_object = sounds.find(
           ({ class_name }) => class_name === page_name
         );
