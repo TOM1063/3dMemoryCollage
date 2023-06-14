@@ -191,6 +191,17 @@ function video_tex_load() {
         let vide_file_name = memory.video;
         let class_name = memory.class_name;
         console.log("videofilename:", vide_file_name);
+
+        //create movie dom
+        const video_element = document.createElement("video");
+        video_element.setAttribute("id", vide_file_name);
+        video_element.setAttribute("loopplaysInlineautoplay", "true");
+        video_element.setAttribute("width", "800");
+        video_element.setAttribute("height", "400");
+        video_element.setAttribute("style", "display:none");
+        const video_container = document.getElementById("video_container");
+        video_container.appendChild(video_element);
+
         const video = document.getElementById(vide_file_name);
         console.log("video:", vide_file_name);
         video.src = MEMORY_PATH + vide_file_name;
