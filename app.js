@@ -224,7 +224,6 @@ function video_tex_load() {
         console.log("make sound of : ", class_name);
         let sound_data = { class_name: class_name, sound: video_sound };
         sounds.push(sound_data);
-
         resolve();
       },
       (error) => {
@@ -257,6 +256,30 @@ function memory_tex_load() {
       });
       memory_tex_load_promises.push(promise);
     }
+  }
+}
+
+function memory_doc_load() {
+  const document_template = document.getElementById("template");
+  const container = document.getElementById("documents");
+
+  for (let i = 0; i < memories_num; i++) {
+    let memory = SETTING_DB.memories_doc[i];
+    let class_name = memory.class_name;
+    let doc_text = memory.document;
+
+    let clone_content = document_template.content.cloneNode(true);
+    // const content = clone_content.lastChild;
+    // clone_content.setAttribute("id", class_name);
+    container.appendChild(clone_content);
+    let doc = container.lastElementChild;
+    console.log(doc);
+    doc.setAttribute("id", class_name);
+    let title_text_dom = doc.getElementsByClassName("memory_title")[0];
+    let doc_text_dom = doc.getElementsByClassName("memory_document")[0];
+    console.log(title_text_dom);
+    title_text_dom.textContent = class_name;
+    doc_text_dom.textContent = doc_text;
   }
 }
 
@@ -385,6 +408,7 @@ function init() {
       memory_tex_load();
       Promise.all(memory_tex_load_promises).then(() => {
         console.log("memory tex loaded");
+        memory_doc_load();
         fbx_load();
         Promise.all(fbx_load_promises).then(() => {
           console.log("fbx loaded");
@@ -587,7 +611,7 @@ function tick() {
   raycaster.setFromCamera(point, camera);
   const intersects = raycaster.intersectObjects(objects);
 
-  //on lock on
+  //----------------------------------on lock on--------------------------------------//
   if (intersects[0]) {
     console.log("rock on!");
     islockon = true;
@@ -670,8 +694,9 @@ function tick() {
       }
       //intersects[0].object.material.uniforms.uColorFactor.value = 0.0;
     }
+    //----------------------------------on lock on--------------------------------------//
 
-    //on touch
+    //----------------------------------on touch--------------------------------------//
     if (dist < linkThresh) {
       title.classList.remove("fade-out");
       title.classList.add("fade-in");
@@ -807,7 +832,9 @@ function tick() {
 
   requestAnimationFrame(tick);
 }
+//----------------------------------on touch--------------------------------------//
 
+//----------------------------------on start--------------------------------------//
 function onStart() {
   console.log("onstart");
   for (let i = 0; i < fbx_models.length; i++) {
@@ -831,9 +858,12 @@ function onStart() {
     .easing(TWEEN.Easing.Exponential.In)
     .start();
 
+  TypingInit();
+
   console.log("on start done");
   tick();
 }
+//----------------------------------on start--------------------------------------//
 //-------------------------------------//update//---------------------------------------//
 
 //-------------------------------------//event//---------------------------------------//
