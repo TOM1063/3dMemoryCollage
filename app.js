@@ -93,12 +93,12 @@ let key_state = {
 };
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, size.width / size.height);
-camera.far = 200;
+camera.far = 100000;
 const controls = new OrbitControls(camera, canvas);
 let listener;
 
 let material = new THREE.MeshBasicMaterial({
-  color: 0xf0f0f0,
+  color: 0xffffff,
   side: THREE.DoubleSide,
 });
 const background = new THREE.Mesh(
@@ -524,6 +524,10 @@ function tick() {
 
   if (background.material.isShaderMaterial) {
     background.material.uniforms.uTime.value = frame / 100;
+  } else {
+    console.log("Background", "notShaderMaterial");
+    console.log("Background", background.material);
+    background.materail = material;
   }
 
   if (true) {
@@ -597,8 +601,8 @@ function tick() {
 
       //const bg_color = new THREE.Color(0, 0, 255);
       const bg_color = new THREE.Color(0.9, 0.9, 0.9);
-      scene.background = NaN;
-      renderer.setClearColor(bg_color, 1);
+      // scene.background = NaN;
+      // renderer.setClearColor(bg_color, 1);
       background.material = material;
 
       intersects[0].object.material.uniforms.uColorFactor.value =
