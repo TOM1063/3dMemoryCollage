@@ -319,7 +319,7 @@ header {
 }
 
 
-@media screen and ((max-width: 480px) or (max-height: 640px)){
+@media screen and ( (max-width: 480px) or (max-height: 640px) ){
 
 #title {
     margin-left: 0;
