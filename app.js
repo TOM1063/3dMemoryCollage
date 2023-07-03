@@ -204,6 +204,7 @@ function video_tex_load() {
 
         const video_sound = new THREE.Audio(listener);
         // video.muted = false;
+        video.muted = false;
         video_sound.autoplay = true;
         video_sound.setMediaElementSource(video);
         video_sound.setLoop(true);
