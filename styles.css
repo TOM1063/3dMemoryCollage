@@ -345,6 +345,7 @@ header {
 
 #loading {
     font-family:serif;
+    padding-top:10%;
     font-size: 0.8rem;
     color:rgb(78, 78, 78);
 }
@@ -360,7 +361,7 @@ header {
 }
 
 .hidden_contents {
-    font-size: 0.4rem;
+    font-size: 0.7rem;
     margin: auto 0;
 }
 }
