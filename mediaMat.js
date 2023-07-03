@@ -231,7 +231,7 @@ export const generateMediaMat = (
                 // float opacity = (1.0 - abs(vDotProduct))*4.0;
                 float opacity = 1.0;
                 if(uNormalFactor == 1.0) {
-                  opacity = (abs(vDotProduct)*2.0 - 1.0)*(1.0 - uColorFactor) + uColorFactor;
+                  opacity = (abs(vDotProduct)*2.0 - 1.0);
                 }
                 vec2 textureSize = vec2(uTexSizeX,uTexSizeY);
                 vec2 windowSize = vec2(uWindowSizeX, uWindowSizeY);
