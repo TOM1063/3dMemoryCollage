@@ -325,6 +325,10 @@ header {
     /* margin-left:10vw; */
     margin-top:10vh;
 }
+#title_box {
+    width:100vw;
+    margin-left:10px;
+}
 
 #main_title {
     font-size: 1.6rem;
