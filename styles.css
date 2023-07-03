@@ -112,7 +112,6 @@ input {
     height:100vh;
     
 }
-w
 .hidden_page_extend{
     height:200vh;
 }
@@ -231,6 +230,7 @@ header {
 }
 
 #title {
+    position: absolute;
     pointer-events: none;
 }
 
