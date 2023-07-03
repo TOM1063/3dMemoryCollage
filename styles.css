@@ -321,7 +321,8 @@ header {
 
 @media screen and ((max-width: 640px) or (max-height: 640px)){
 
-.title {
+#title {
+    position: absolute;
     margin-left: 0;
 }
 .title h1 {
