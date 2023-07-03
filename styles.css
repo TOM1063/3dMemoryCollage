@@ -327,7 +327,7 @@ header {
     margin-left: 0;
 }
 .title h1 {
-    font-size: 2rem;
+    font-size: 3rem;
     /* margin-left:10vw; */
     margin-top:10vh;
 
@@ -344,8 +344,9 @@ header {
 }
 
 #loading {
+    font-family:serif;
     font-size: 0.8rem;
-    color:rgb(111, 0, 0);
+    color:rgb(78, 78, 78);
 }
 
 .button {
